@@ -28,7 +28,7 @@ with open(file_path, "w", newline='', encoding='utf-8-sig') as file:
         while tax_id in generated_ids:
             tax_id = fake.numerify("########")
     
-        while store_name in generated_ids:
+        while store_name in generated_names:
             store_name = fake.city_name()
         
         generated_ids.add(tax_id)
