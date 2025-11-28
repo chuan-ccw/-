@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>顧客登入 / 建立訂單</title>
+    <style>
+        body {
+            font-family: Arial, "微軟正黑體", sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px 60px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        label, input {
+            font-size: 18px;
+        }
+
+        input[type="text"] {
+            padding: 8px 12px;
+            margin: 10px 0;
+            width: 220px;
+        }
+
+        button {
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background-color: #2196F3;
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        a.back {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>顧客登入 / 建立訂單</h1>
+
+        <!-- 之後這個 form 會接到後端程式，現在先純畫面 -->
+        <form action="customer_register_xxx" method="post">
+            <div>
+                <label for="phone">電話：</label><br>
+                <input type="text" id="phone" name="phone" required>
+            </div>
+            <br>
+            <button type="submit">開始點餐</button>
+        </form>
+
+        <!-- 回首頁 -->
+        <a href="first.html" class="back">← 回首頁</a>
+    </div>
+</body>
+</html>
