@@ -33,12 +33,13 @@ def login_customer():
     if request.method == 'POST':
         phone = request.form.get("phone")
 
-        cursor.execute("SELECT phone FROM customer")
+        cursor.execute("SELECT phone FROM customer WHERE phone==?",(phone,))
         rows = cursor.fetchall()
 
-        for row in rows :
-            if phone == row[0] :
-                return render_template("customer_order.html")
+        if not rows :
+            return "customer電話錯誤"
+        else:
+            return render_template("customer_order.html")
             
     return render_template("customer_login.html")
     
@@ -47,12 +48,13 @@ def login_store():
     if request.method == 'POST':
         store_id = request.form.get("store_id")
 
-        cursor.execute("SELECT store_id FROM store")
+        cursor.execute("SELECT store_id FROM store WHERE store_id==?",(store_id,))
         rows = cursor.fetchall()
 
-        for row in rows :
-            if store_id == row[0] :
-                return render_template("order.html")
+        if not rows :
+            return "store id錯誤"
+        else:
+            return render_template("store_check.html")
             
     return render_template("store_login.html")
     
