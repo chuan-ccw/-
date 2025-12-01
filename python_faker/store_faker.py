@@ -5,7 +5,7 @@ fake = Faker('zh_TW')
 Faker.seed(33)
 
 # 準備寫入的路徑
-file_path = "database_data/store.csv"
+file_path = "../database_data/store.csv"
 
 # 設定要產生的筆數
 count = 20

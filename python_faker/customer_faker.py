@@ -8,7 +8,7 @@ Faker.seed(33)
 number_format = '09########' 
 
 # 準備要寫入的檔案路徑 (注意：要包含檔名 .csv)
-file_path = "database_data/customer.csv"
+file_path = "../database_data/customer.csv"
 
 # 設定要產生的筆數
 count = 20

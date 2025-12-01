@@ -40,7 +40,7 @@ create table item
 create table product
 	(product_id				int,
 	 name					varchar(10),
-	 photo					varchar(255),
+	 photo_url				varchar(255),
 	 price					int,
 	 primary key (product_id)
 	);
