@@ -1,0 +1,13 @@
+# Visual Studio 產生的快取，不要放進 Git
+.vs/
+
+# C# / ASP.NET 專案的編譯輸出
+bin/
+obj/
+
+# 使用者個人設定（可選）
+*.user
+*.suo
+
+# VS Code 設定（可選，要不要都可以）
+.vscode/

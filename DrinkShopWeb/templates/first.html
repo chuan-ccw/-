@@ -1,0 +1,78 @@
+<!-- templates/first.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>手搖飲訂購系統</title>
+    <style>
+        body {
+            font-family: Arial, "微軟正黑體", sans-serif;
+
+            /* 用 Flask 的 static 路徑抓首頁背景圖 */
+            background-image: url("{{ url_for('static', filename='img/43031_01.jpg') }}");
+            background-size: cover;          /* 圖片填滿畫面 */
+            background-position: center;      /* 置中 */
+            background-repeat: no-repeat;     /* 不重複 */
+            background-color: #f5f5f5;        /* 備用底色 */
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px 60px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 10px 20px;
+            font-size: 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: #ffffff;
+        }
+
+        .btn-shop {
+            background-color: #ff9800;   /* 橘色：店家 */
+        }
+
+        .btn-customer {
+            background-color: #2196F3;   /* 藍色：客人 */
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>手搖飲訂購系統</h1>
+
+        <!-- 我是店家：走 /store（login_store 路由） -->
+        <a href="{{ url_for('login_store') }}">
+            <button class="btn btn-shop">我是店家</button>
+        </a>
+
+        <span style="margin: 0 8px;">-</span>
+
+        <!-- 我是客人：走 /customer_page（customer_page 路由） -->
+        <a href="{{ url_for('customer_page') }}">
+            <button class="btn btn-customer">我是客人</button>
+        </a>
+    </div>
+</body>
+</html>

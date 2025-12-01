@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>顧客點餐頁面</title>
+    <style>
+        body {
+            font-family: Arial, "微軟正黑體", sans-serif;
+
+            /* 跟顧客登入頁一樣的背景圖，檔名自己改成你那張 */
+            background-image: url("img/你的背景檔名.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #f5f5f5;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 900px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .layout {
+            display: flex;
+            gap: 20px;
+        }
+
+        .left, .right {
+            flex: 1;
+        }
+
+        .left h2, .right h2 {
+            margin-bottom: 10px;
+        }
+
+        .field {
+            margin: 8px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 14px;
+        }
+
+        #addBtn {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px 0;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        #addBtn:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        tfoot td {
+            font-weight: bold;
+        }
+
+        .bottom-buttons {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .bottom-buttons button {
+            padding: 8px 18px;
+            margin-left: 8px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: #2196F3;
+            color: #fff;
+        }
+
+        .clear-btn {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        a.back {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>建立訂單</h1>
+
+    <div class="layout">
+        <!-- 左邊：新增飲品 -->
+        <div class="left">
+            <h2>新增飲品</h2>
+
+            <div class="field">
+                <label for="drink">飲品：</label>
+                <!-- 先寫死，之後可以從 product 表讀 -->
+                <select id="drink">
+                    <option value="" disabled selected>請選擇飲品</option>
+                    <option value="紅茶" data-price="30">紅茶 $30</option>
+                    <option value="綠茶" data-price="35">綠茶 $35</option>
+                    <option value="珍奶" data-price="50">珍珠奶茶 $50</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="size">尺寸：</label>
+                <select id="size">
+                    <option value="M">中杯</option>
+                    <option value="L">大杯</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="sugar">甜度：</label>
+                <select id="sugar">
+                    <option value="正常">正常</option>
+                    <option value="少糖">少糖</option>
+                    <option value="半糖">半糖</option>
+                    <option value="微糖">微糖</option>
+                    <option value="無糖">無糖</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="ice">冰塊：</label>
+                <select id="ice">
+                    <option value="正常冰">正常冰</option>
+                    <option value="少冰">少冰</option>
+                    <option value="微冰">微冰</option>
+                    <option value="去冰">去冰</option>
+                    <option value="熱">熱</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="qty">數量：</label>
+                <input type="number" id="qty" value="1" min="1">
+            </div>
+
+            <button type="button" id="addBtn">加入訂單</button>
+        </div>
+
+        <!-- 右邊：訂單明細 -->
+        <div class="right">
+            <h2>目前訂單</h2>
+            <table id="orderTable">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>飲品</th>
+                    <th>尺寸</th>
+                    <th>甜度</th>
+                    <th>冰塊</th>
+                    <th>單價</th>
+                    <th>數量</th>
+                    <th>小計</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- JS 會把每一項加在這裡 -->
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="6" style="text-align:right;">總杯數：</td>
+                    <td id="totAmount">0</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="7" style="text-align:right;">總金額：</td>
+                    <td id="totPrice">0</td>
+                </tr>
+                </tfoot>
+            </table>
+
+            <div class="bottom-buttons">
+                <button type="button" class="clear-btn" id="clearBtn">清空</button>
+                <button type="button" class="submit-btn" id="submitBtn">送出訂單</button>
+            </div>
+
+            <a href="customer_page.html" class="back">← 返回填電話</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let index = 1;
+    let totalAmount = 0;
+    let totalPrice = 0;
+
+    const drinkSelect = document.getElementById('drink');
+    const sizeSelect = document.getElementById('size');
+    const sugarSelect = document.getElementById('sugar');
+    const iceSelect = document.getElementById('ice');
+    const qtyInput = document.getElementById('qty');
+    const tbody = document.querySelector('#orderTable tbody');
+    const totAmountTd = document.getElementById('totAmount');
+    const totPriceTd = document.getElementById('totPrice');
+
+    document.getElementById('addBtn').addEventListener('click', function () {
+        const drinkOption = drinkSelect.options[drinkSelect.selectedIndex];
+        const drinkName = drinkOption.value;
+        if (!drinkName) {
+            alert('請先選擇飲品');
+            return;
+        }
+        const price = Number(drinkOption.dataset.price);
+        const size = sizeSelect.value;
+        const sugar = sugarSelect.value;
+        const ice = iceSelect.value;
+        const qty = Number(qtyInput.value);
+
+        if (qty <= 0) {
+            alert('數量必須大於 0');
+            return;
+        }
+
+        const subTotal = price * qty;
+
+        // 新增一列到表格
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${index++}</td>
+            <td>${drinkName}</td>
+            <td>${size}</td>
+            <td>${sugar}</td>
+            <td>${ice}</td>
+            <td>${price}</td>
+            <td>${qty}</td>
+            <td>${subTotal}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // 更新總杯數 & 總金額
+        totalAmount += qty;
+        totalPrice += subTotal;
+        totAmountTd.textContent = totalAmount;
+        totPriceTd.textContent = totalPrice;
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function () {
+        tbody.innerHTML = '';
+        index = 1;
+        totalAmount = 0;
+        totalPrice = 0;
+        totAmountTd.textContent = '0';
+        totPriceTd.textContent = '0';
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', function () {
+        if (totalAmount === 0) {
+            alert('目前沒有任何品項唷！');
+            return;
+        }
+        alert('這裡之後會呼叫後端 API，把訂單寫進 order / item 表。\n現在先當作送出成功～');
+    });
+</script>
+</body>
+</html>
