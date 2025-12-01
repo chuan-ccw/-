@@ -16,7 +16,7 @@ cursor = conn.cursor()
 def first():        
     return render_template("first.html")
 
-@app.route("/choice_identity",methods=['GET','POST'])
+@app.route("/choice_identity",methods=['GET','POST']) #選擇是店家要登入還是客人
 def choice_identity():
     if request.method == 'POST':
         button = request.form.get("choice")
@@ -28,7 +28,7 @@ def choice_identity():
         
     return render_template("first.html")
 
-@app.route("/login_customer",methods=['POST'])
+@app.route("/login_customer",methods=['POST']) #客人登入介面
 def login_customer():    
     if request.method == 'POST':
         phone = request.form.get("phone")
@@ -42,7 +42,7 @@ def login_customer():
             
     return render_template("customer_login.html")
     
-@app.route("/login_store",methods=['GET','POST'])
+@app.route("/login_store",methods=['GET','POST']) #店家登入介面
 def login_store():    
     if request.method == 'POST':
         store_id = request.form.get("store_id")
@@ -57,35 +57,41 @@ def login_store():
     return render_template("store_login.html")
     
 
-@app.route("/product_name",methods=['POST'])
+@app.route("/product_name",methods=['POST']) #客人選擇飲料(下拉式選單)
 def product_name():    
     cursor.execute("SELECT product.name FROM product")
     rows = cursor.fetchall() 
-    return render_template("order.html",items=rows)
+    return render_template("customer_order.html",items=rows)
 
-@app.route("/customer_order",methods=['POST'])
+@app.route("/customer_order",methods=['POST']) #客人客製化頁面
 def customer_order():    
     if request.method == 'POST':
         product_name = request.form.get("product_name")
         cursor.execute("SELECT photo FROM product WHERE name=?",(product_name,))
         rows = cursor.fetchall() 
-        return render_template("order.html",items=rows)
+        return render_template("customer_order.html",items=rows)
 
 
-    return render_template("order.html")
+    return render_template("customer_order.html")
 
-@app.route("/customer_order",methods=['POST'])
-def login_store():    
-    if request.method == 'POST':
-        store_id = request.form.get("store_id")
+@app.route("/inf_bt",methods=['POST']) #店家查看訂單頁面 inf對應按鈕
+def inf_bt():   
+    cursor.execute("SELECT order.order_id FROM order")
+    rows = cursor.fetchall()
+    return render_template("store_check.html",items=rows)
 
-        cursor.execute("SELECT store_id FROM store")
+@app.route("/store_check",methods=['POST']) #店家查看訂單頁面
+def store_check():
+    int_bt = request.form.get("inf_bt")
+    if request.method == 'POST': #店家查看細部資訊
+        cursor.execute("SELECT order_id FROM order WHERE order_id=?",(int_bt,))
         rows = cursor.fetchall()
-
-        for row in rows :
-            if store_id == row[0] :
-                return render_template("order.html")
-    return render_template("order.html")
+        if not rows:
+            return render_template("store_check.html",items=rows)
+        
+    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer")
+    rows = cursor.fetchall()
+    return render_template("store_check.html",items=rows)
 
 if __name__ == "__main__":
     app.run(debug=True)
