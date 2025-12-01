@@ -89,7 +89,7 @@ def store_check():
         if not rows:
             return render_template("store_check.html",items=rows)
         
-    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer")
+    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer on(customer.customer_id==order.customer_id)")
     rows = cursor.fetchall()
     return render_template("store_check.html",items=rows)
 
