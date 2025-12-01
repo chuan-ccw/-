@@ -33,7 +33,7 @@ def login_customer():
     if request.method == 'POST':
         phone = request.form.get("phone")
 
-        cursor.execute("SELECT phone FROM customer WHERE phone==?",(phone,))
+        cursor.execute("SELECT phone FROM customer WHERE phone=?",(phone,))
         rows = cursor.fetchall()
 
         if not rows :
@@ -48,7 +48,7 @@ def login_store():
     if request.method == 'POST':
         store_id = request.form.get("store_id")
 
-        cursor.execute("SELECT store_id FROM store WHERE store_id==?",(store_id,))
+        cursor.execute("SELECT store_id FROM store WHERE store_id=?",(store_id,))
         rows = cursor.fetchall()
 
         if not rows :
