@@ -1,52 +1,79 @@
-create table store
-	(store_id		        int,
-	 name		    	 	varchar(10),
-	 primary key (store_id)
-	);
+USE DrinkShopDB;
+GO
 
+DROP TABLE IF EXISTS item;
+DROP TABLE IF EXISTS [order];
+DROP TABLE IF EXISTS product;
+DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS store;
 
-create table order
-	(order_id				int,
-	 store_id		        int,
-	 customer_id  			int,
-	 tot_price				int,
-	 tot_amount 			int,
-	 status 				varchar(10),
-	 primary key (order_id)
-	 foreign key (store_id) references store (store_id)
-	 	on delete set null
-	 foreign key (customer_id) references customer (customer_id)
-	 	on delete set null	 
+-- 建立門市
+CREATE TABLE store
+(
+    store_id    INT,
+    name        NVARCHAR(10),
+    PRIMARY KEY (store_id)
+);
 
-	);
+-- 建立商品
+CREATE TABLE product
+(
+    product_id  INT,
+    name        NVARCHAR(10),
+    photo_url   NVARCHAR(255),
+    price       INT,
+    PRIMARY KEY (product_id)
+);
 
+-- 建立顧客
+CREATE TABLE customer
+(
+    customer_id INT,
+    phone       NVARCHAR(10),
+    PRIMARY KEY (customer_id)
+)
 
-create table item
-	(item_id				int,
-	 order_id				int,
-	 product_id				int,
-	 size					varchar(10),
-	 ice					varchar(10),
-	 sugar					varchar(10),
-	 temperature			varchar(10),
-	 quantity 				int,
-	 primary key (item_id)
-	 foreign key (order_id) references order (order_id)
-	 	on delete set null
-	 foreign key (product_id) references product (product_id)
-	 	on delete set null	 
-	);
+-- 建立訂單（order 是保留字，要用中括號）
+CREATE TABLE [order]
+(
+    order_id    INT,
+    store_id    INT NULL,
+    customer_id INT NULL,
+    tot_price   INT,
+    tot_amount  INT,
+    status      NVARCHAR(10),
 
-create table product
-	(product_id				int,
-	 name					varchar(10),
-	 photo_url				varchar(255),
-	 price					int,
-	 primary key (product_id)
-	);
+    PRIMARY KEY (order_id),
 
-create table customer
-	(customer_id			int,
-	 phone					varchar(10),
-	 primary key (customer_id)
-	);
+    FOREIGN KEY (store_id)
+        REFERENCES store(store_id)
+        ON DELETE SET NULL,
+
+    FOREIGN KEY (customer_id)
+        REFERENCES customer(customer_id)
+        ON DELETE SET NULL
+);
+
+-- 建立訂單明細 item
+CREATE TABLE item
+(
+    item_id     INT,
+    order_id    INT NULL,
+    product_id  INT NULL,
+    size        NVARCHAR(10),
+    ice         NVARCHAR(10),
+    sugar       NVARCHAR(10),
+    temperature NVARCHAR(10),
+    quantity    INT,
+
+    PRIMARY KEY (item_id),
+
+    FOREIGN KEY (order_id)
+        REFERENCES [order](order_id)
+        ON DELETE SET NULL,
+
+    FOREIGN KEY (product_id)
+        REFERENCES product(product_id)
+        ON DELETE SET NULL
+);
+;
