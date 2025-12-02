@@ -110,7 +110,7 @@ def add_order():
         quantity = request.form.get("quantity")
 
         cursor.execute("INSERT INTO item VALUES (?,?,?,?,?,?,?,?)",(item_id,order_id,product_id,size,ice,sugar,temperature,quantity))
-        
+        conn.commit()
     
     return render_template("order_drink.html")
 
@@ -138,8 +138,9 @@ def admin_order_detail():
 def admin_order():
     global order_id
     int_bt = request.form.get("inf_bt")
+
     if request.method == 'POST': #店家查看細部資訊
-        cursor.execute("SELECT order_id FROM order WHERE order_id=?",(int_bt,))
+        cursor.execute("SELECT order_id FROM order WHERE order_id=?",(int(int_bt),))
         rows = cursor.fetchall()
         if not rows:
             return render_template("admin_order.html",items=rows)
