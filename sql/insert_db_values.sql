@@ -1,4 +1,13 @@
-﻿INSERT INTO customer VALUES ('1', '0992347882');
+﻿USE DrinkShopDB;
+GO
+
+DELETE FROM item;
+DELETE FROM [order];
+DELETE FROM product;
+DELETE FROM customer;
+DELETE FROM store;
+
+INSERT INTO customer VALUES ('1', '0992347882');
 INSERT INTO customer VALUES ('2', '0998587741');
 INSERT INTO customer VALUES ('3', '0946487096');
 INSERT INTO customer VALUES ('4', '0945831054');
@@ -18,6 +27,7 @@ INSERT INTO customer VALUES ('17', '0971491913');
 INSERT INTO customer VALUES ('18', '0933911096');
 INSERT INTO customer VALUES ('19', '0985026012');
 INSERT INTO customer VALUES ('20', '0970093831');
+
 INSERT INTO product VALUES ('1', '8冰烏', 'static/product_images/8冰烏_40.jpg', '40');
 INSERT INTO product VALUES ('2', '8冰紅', 'static/product_images/8冰紅_40.jpg', '40');
 INSERT INTO product VALUES ('3', '8冰綠', 'static/product_images/8冰綠_40.jpg', '40');
@@ -204,6 +214,7 @@ INSERT INTO product VALUES ('183', '鮮柚青茶(季節限定)', 'static/product
 INSERT INTO product VALUES ('184', '鮮梅汁', 'static/product_images/鮮梅汁_50.jpg', '50');
 INSERT INTO product VALUES ('185', '鳳梨汁', 'static/product_images/鳳梨汁_40.jpg', '40');
 INSERT INTO product VALUES ('186', '黃金烏龍', 'static/product_images/黃金烏龍_30.jpg', '30');
+
 INSERT INTO store VALUES ('92347882', '50嵐 竹田店');
 INSERT INTO store VALUES ('58774146', '50嵐 三重店');
 INSERT INTO store VALUES ('87096458', '50嵐 臺中店');
@@ -224,3 +235,4 @@ INSERT INTO store VALUES ('12700938', '50嵐 竹北店');
 INSERT INTO store VALUES ('15517400', '50嵐 基隆店');
 INSERT INTO store VALUES ('74955825', '50嵐 桃園店');
 INSERT INTO store VALUES ('56774318', '50嵐 台東店');
+
