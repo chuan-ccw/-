@@ -22,7 +22,7 @@ def first():
 
 
 @app.route("/customer_login.html")
-@app.route("/customer_login",methods=['POST']) #客人登入介面
+@app.route("/customer_login",methods=['GET','POST']) #客人登入介面
 def customer_login():    
     global customer_id
     global order_id
@@ -64,20 +64,20 @@ def admin_login():
     return render_template("admin_login.html")
     
 
-@app.route("/product_name",methods=['POST']) #客人選擇飲料(下拉式選單)
+@app.route("/product_name",methods=['GET','POST']) #客人選擇飲料(下拉式選單)
 def product_name():    
     cursor.execute("SELECT product.name FROM product")
     rows = cursor.fetchall() 
     return render_template("customer_order.html",items=rows)
 
-@app.route("/store_name",methods=['POST']) #客人選擇店家(下拉式選單)
+@app.route("/store_name",methods=['GET','POST']) #客人選擇店家(下拉式選單)
 def store_name():    
     cursor.execute("SELECT store.name FROM store")
     rows = cursor.fetchall() 
     return render_template("customer_order.html",items=rows)
 
 @app.route("/order_drink.html")
-@app.route("/order_drink",methods=['POST']) #客人客製化頁面
+@app.route("/order_drink",methods=['GET','POST']) #客人客製化頁面
 def order_drink():    
     if request.method == 'POST':
         product_name = request.form.get("product_name")
@@ -117,7 +117,7 @@ def add_order():
 
 
 
-@app.route("/inf_bt",methods=['POST']) #店家查看訂單頁面 inf對應按鈕
+@app.route("/inf_bt",methods=['GET','POST']) #店家查看訂單頁面 inf對應按鈕
 def inf_bt():   
     cursor.execute("SELECT order.order_id FROM order")
     rows = cursor.fetchall()
@@ -125,7 +125,7 @@ def inf_bt():
 
 
 @app.route("/admin_order_detail.html")
-@app.route("/admin_order_detail",methods=['POST']) #店家查看詳細訂單頁面
+@app.route("/admin_order_detail",methods=['GET','POST']) #店家查看詳細訂單頁面
 def admin_order_detail():
     global order_id
     cursor.execute("SELECT tot_price,item.item_id,item.order_id,item.product_id,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM order inner join item on(item.order_id=order.order_id) WHERE order.order_id=?",(order_id,))
@@ -134,7 +134,7 @@ def admin_order_detail():
 
 
 @app.route("/admin_order.html")
-@app.route("/admin_order",methods=['POST']) #店家查看訂單頁面
+@app.route("/admin_order",methods=['GET','POST']) #店家查看訂單頁面
 def admin_order():
     global order_id
     int_bt = request.form.get("inf_bt")
@@ -147,7 +147,7 @@ def admin_order():
             order_id = rows[0][0]
             return render_template("admin_order_detail.html",items=rows)
         
-    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer on(customer.customer_id==order.customer_id)")
+    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer on(customer.customer_id=order.customer_id)")
     rows = cursor.fetchall()
     return render_template("admin_order.html",items=rows)
 
