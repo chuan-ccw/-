@@ -1,0 +1,100 @@
+<!-- templates/admin_login.html -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>店家登入</title>
+    <style>
+        body {
+            font-family: Arial, "微軟正黑體", sans-serif;
+
+            /* 用 Flask static 路徑抓店家登入背景圖 */
+            background-image: url("{{ url_for('static', filename='img/店家登入.jpg') }}");
+            background-size: cover;          /* 圖片填滿畫面 */
+            background-position: center;      /* 置中 */
+            background-repeat: no-repeat;     /* 不重複 */
+            background-color: #f5f5f5;        /* 備用底色 */
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px 60px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .field {
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 260px;
+            padding: 8px 10px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 18px;
+            padding: 10px 30px;
+            font-size: 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background-color: #ff9800;   /* 跟首頁店家按鈕一樣橘色 */
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        a.back {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>店家登入</h1>
+
+        <!-- 送到 Flask 的 admin_login 路由（同時處理 GET / POST） -->
+        <form action="{{ url_for('admin_login') }}" method="post">
+            <div class="field">
+                <label for="shopId">店家 ID：</label>
+                <input type="text" id="shopId" name="shopId" required>
+            </div>
+
+            <div class="field">
+                <label for="password">密碼：</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit">登入</button>
+        </form>
+
+        <!-- 回首頁 -->
+        <a href="{{ url_for('index') }}" class="back">← 回首頁</a>
+    </div>
+</body>
+</html>
