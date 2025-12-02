@@ -90,6 +90,7 @@ def order_drink():
 
 @app.route("/add_order",methods=['GET','POST']) #客人按下加入訂單按鈕(新增一筆明細)
 def add_order():
+    global order_id
     if request.method == 'POST':
         cursor.execute("SELECT max(item.id) FROM item inner join order on(order.order_id=item.order_id)")
         rows = cursor.fetchall()
@@ -122,20 +123,29 @@ def inf_bt():
     rows = cursor.fetchall()
     return render_template("store_check.html",items=rows)
 
-@app.route("/store_check.html")
-@app.route("/store_check",methods=['POST']) #店家查看詳細訂單頁面
-def store_check():
-    print()
+
+@app.route("/admin_order_detail.html")
+@app.route("/admin_order_detail",methods=['POST']) #店家查看詳細訂單頁面
+def admin_order_detail():
+    global order_id
+    cursor.execute("SELECT tot_price,item.item_id,item.order_id,item.product_id,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM order inner join item on(item.order_id=order.order_id) WHERE order.order_id=?",(order_id,))
+    rows = cursor.fetchall()
+    return  render_template("admin_order_detail.html",items=rows)
+
 
 @app.route("/admin_order.html")
 @app.route("/admin_order",methods=['POST']) #店家查看訂單頁面
 def admin_order():
+    global order_id
     int_bt = request.form.get("inf_bt")
     if request.method == 'POST': #店家查看細部資訊
         cursor.execute("SELECT order_id FROM order WHERE order_id=?",(int_bt,))
         rows = cursor.fetchall()
         if not rows:
             return render_template("admin_order.html",items=rows)
+        else:
+            order_id = rows[0][0]
+            return render_template("admin_order_detail.html",items=rows)
         
     cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer on(customer.customer_id==order.customer_id)")
     rows = cursor.fetchall()
