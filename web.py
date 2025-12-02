@@ -36,10 +36,11 @@ def customer_login():
             return "customer電話錯誤"
         else:
             cursor.execute("SELECT customer_id FROM customer WHERE phone=?",(phone,))
-            customer_id = rows[0][0]
-            cursor.execute("SELECT max(order.id) FROM order inner join customer on(order.customer_id=customer.customer_id)")
             rows = cursor.fetchall()
-            order_id =rows[0][0]+1
+            customer_id = rows[0][0]
+            cursor.execute("INSERT INTO order (customer_id) VALUES (?)",(customer_id,))
+            conn.commit() 
+            order_id = cursor.lastrowid
             return render_template("order_drink.html")
             
     return render_template("customer_login.html")
