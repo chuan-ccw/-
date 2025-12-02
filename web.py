@@ -58,7 +58,8 @@ def customer_login():
 
 @app.route("/admin_login.html")
 @app.route("/admin_login",methods=['GET','POST']) #店家登入介面
-def admin_login():    
+def admin_login():
+    global store_id    
     if request.method == 'POST':
         store_id = request.form.get("store_id")
 
@@ -68,8 +69,6 @@ def admin_login():
         if not rows :
             return "store id錯誤"
         else:
-            cursor()
-            cursor.execute("INSERT INTO order VALUES ()")
             return render_template("admin_order.html")
             
     return render_template("admin_login.html")
