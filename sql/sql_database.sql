@@ -63,7 +63,7 @@ CREATE TABLE item
     size        NVARCHAR(10),
     ice         NVARCHAR(10),
     sugar       NVARCHAR(10),
-    temperature NVARCHAR(10),
+    topping NVARCHAR(10),
     quantity    INT,
 
     PRIMARY KEY (item_id),

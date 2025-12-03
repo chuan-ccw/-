@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>飲料點單頁面</title>
+    <style>
+        body {
+            font-family: Arial, "微軟正黑體", sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-wrapper {
+            max-width: 1100px;
+            margin: 30px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 24px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+            .page-header h1 {
+                margin: 0;
+                font-size: 24px;
+            }
+
+        .header-info {
+            text-align: right;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .content {
+            display: flex;
+            gap: 24px;
+            margin-top: 10px;
+        }
+
+        .drink-photo {
+            flex: 1;
+            min-height: 260px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .drink-photo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .form-area {
+            flex: 1.2;
+        }
+
+        .form-row {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+            .form-row label {
+                width: 80px;
+                font-size: 16px;
+            }
+
+            .form-row input,
+            .form-row select {
+                flex: 1;
+                padding: 6px 8px;
+                font-size: 16px;
+            }
+
+        .actions {
+            margin-top: 18px;
+            text-align: right;
+        }
+
+        .btn {
+            padding: 8px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #2196F3;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                opacity: 0.9;
+            }
+
+        .btn-secondary {
+            margin-right: 8px;
+            background-color: #9e9e9e;
+            color: #fff;
+        }
+
+        a.back-link {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .error {
+            color: #d32f2f;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+
+        <!-- 頂端標題 + 右上角顧客 / 日期 -->
+        <div class="page-header">
+            <h1>飲料點單</h1>
+
+            <div class="header-info">
+                顧客電話：{{ customer_phone if customer_phone is defined else '（之後由後端填入）' }}<br>
+                今日日期：{{ today if today is defined else '2025-01-01' }}<br>
+                訂單編號：{{ order_id if order_id is defined else '' }}
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 左邊：飲料圖片區 -->
+            <div class="drink-photo">
+                {% if products and products|length > 0 %}
+                <!-- 預設先顯示第一個產品的圖 -->
+                <img id="drink-image"
+                     src="{{ url_for('static', filename=products[0].photo_url) }}"
+                     alt="{{ products[0].name }}">
+                {% else %}
+                <!-- 若 DB 沒資料就用示意圖 -->
+                <img id="drink-image"
+                     src="{{ url_for('static', filename='img/43031_01.jpg') }}"
+                     alt="飲料示意圖">
+                {% endif %}
+            </div>
+
+            <!-- 右邊：點單表單 -->
+            <div class="form-area">
+                {% if error_msg %}
+                <div class="error">{{ error_msg }}</div>
+                {% endif %}
+                <!-- ✅ 送到 /add_order -->
+                <form action="{{ url_for('add_order') }}" method="post">
+                    <!-- 把顧客電話、訂單編號一起送出去（隱藏欄位） -->
+                    <input type="hidden" name="phone" value="{{ customer_phone }}">
+                    <input type="hidden" name="order_id" value="{{ order_id }}">
+
+                    <div class="form-row">
+                        <label for="drink">飲品：</label>
+                        <select id="drink" name="drink">
+                            <option value="">請選擇飲品</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}"
+                                    data-photo="{{ url_for('static', filename=p.photo_url) }}"
+                                    data-price="{{ p.price }}">
+                                {{ p.name }}（${{ p.price }}）
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="size">尺寸：</label>
+                        <select id="size" name="size">
+                            <option value="M">中杯</option>
+                            <option value="L">大杯</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="ice">冰量：</label>
+                        <select id="ice" name="ice">
+                            <option value="normal">正常冰</option>
+                            <option value="less">少冰</option>
+                            <option value="no">去冰</option>
+                            <option value="hot">熱飲</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="sweet">甜度：</label>
+                        <select id="sweet" name="sweet">
+                            <option value="normal">全糖</option>
+                            <option value="half">半糖</option>
+                            <option value="quarter">微糖</option>
+                            <option value="no">無糖</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="topping">加料：</label>
+                        <select id="topping" name="topping">
+                            <option value="">無</option>
+                            <option value="pearl">珍珠</option>
+                            <option value="coconut">椰果</option>
+                            <option value="pudding">布丁</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="qty">數量：</label>
+                        <input type="number" id="qty" name="qty" min="1" value="1">
+                    </div>
+
+                    <div class="form-row">
+                        <label for="note">備註：</label>
+                        <input type="text" id="note" name="note" placeholder="例如：少冰、去草莓醬…">
+                    </div>
+
+                    <div class="actions">
+                        <button type="reset" class="btn btn-secondary">清空資料</button>
+                        <button type="submit" class="btn btn-primary">加入訂單</button>
+                    </div>
+                </form>
+
+                <a href="{{ url_for('index') }}" class="back-link">← 回首頁</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 放在 body 最後，確保元素已經存在，才能綁定事件 -->
+    <script>
+        (function () {
+            const select = document.getElementById('drink');
+            const img = document.getElementById('drink-image');
+            if (!select || !img) return;
+
+            select.addEventListener('change', function () {
+                const opt = select.options[select.selectedIndex];
+                const photoUrl = opt.getAttribute('data-photo');
+                if (photoUrl) {
+                    img.src = photoUrl;  // 顯示對應飲品的圖片
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

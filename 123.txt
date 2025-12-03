@@ -1,0 +1,40 @@
+首頁(index.html)
+
+
+店家:
+登入要從azure db 確認是否在store.store_id 內才能登入
+所有訂單畫面要去db撈 order 找store_id 為目前id的訂單
+詳細資料則是要去找對應order_id的明細
+
+
+客人:
+登入畫面(customer_login.html):
+登入要從azure db 確認是否在customer.phone 內才能登入
+                如果不存在可以新增置online azure資料庫
+                格式要符合台灣行動電話號碼一律以09 開頭，後接8 位數字(用regex檢查)
+
+點餐畫面(order_drink.html)
+先選擇店家(下拉式選單) 從db取所有店家(store.name)
+客人客製化(飲品, 尺寸, 冰量, 甜度, 數量, 冷/熱):
+要從下拉是選單選擇product.name然後去資料庫select對應photo_url顯示在左側
+    item_id     INT,
+    order_id    INT NULL,
+    product_id  INT NULL,
+    size        NVARCHAR(10),
+    ice         NVARCHAR(10),
+    sugar       NVARCHAR(10),
+    temperature NVARCHAR(10),
+    quantity    INT,
+加入訂單:把資訊加入到item table裡面
+目前訂單(order_drink.html -> order_summary.html)(buttom):所有item中找出的order_id是目前訂單id的item並顯示
+結帳(order_summary.html -> order_success.html)(buttom):
+    所有item中找出的order_id是目前訂單id的item並顯示
+
+
+
+客人下訂單頁面:要select的tot_price、tot_amount 所有item的外鑑對應到目前編輯的order_id
+結帳按鈕:insert 所有item的外鑑對應到目前編輯的order_id
+
+客人下訂單成功:select 與order_id相同的所有item和order的tot_price、order_id、store_id 
+
+再次訂購:insert一個新的order_id
