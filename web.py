@@ -79,9 +79,11 @@ def store_name():
 @app.route("/order_drink.html")
 @app.route("/order_drink",methods=['GET','POST']) #客人客製化頁面
 def order_drink():    
+    global store_id
     if request.method == 'POST':
         product_name = request.form.get("product_name")
         cursor.execute("SELECT photo FROM product WHERE name=?",(product_name,))
+        store_id = request.form.get("store_id")
         rows = cursor.fetchall() 
         return render_template("order_drink.html",items=rows)
 
