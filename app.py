@@ -122,15 +122,15 @@ def add_order():
 def order_summary():
     cursor.execute("SELECT sum(item.price) FROM item  WHERE item.order_id=?",(order_id,))
     rows = cursor.fetchall()
-    tot_price = rows[0][0]
+    tot_price = row[0][0]
     cursor.execute("SELECT sum(item.quantity) FROM item inner join product on(item.product_id=product.product_id) WHERE item.order_id=?",(order_id,))
     rows = cursor.fetchall()
-    tot_amount = rows[0][0]
+    tot_amount = row[0][0]
     cursor.execute("SELECT product.name,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM item inner join product on(item.product_id=product.product_id) WHERE item.order_id=?",(order_id,))
     rows = cursor.fetchall()
 
     if request.method == 'POST': #客人結帳按鈕
-        cursor.execute("INSERT INTO [order] VALUES (?,?,?,?,?,?)",(order_id,store_id,customer_id,tot_price,tot_amount,"未完成"))
+        cursor.execute("INSERT INTO [order] VALUES (?,?,?,?,?,"未完成")",(order_id,store_id,customer_id,tot_price,tot_amount))
         conn.commit()
         return render_template("order_success.html")
 
@@ -140,11 +140,9 @@ def order_summary():
 @app.route("/order_success",methods=['GET','POST']) #客人訂單成功
 def order_success():
     cursor.execute("SELECT sum(item.price) FROM item  WHERE item.order_id=?",(order_id,))
-    rows = cursor.fetchall()
-    tot_price = rows[0][0]
+    tot_price = row[0][0]
     cursor.execute("SELECT sum(item.quantity) FROM item inner join product on(item.product_id=product.product_id) WHERE item.order_id=?",(order_id,))
-    rows = cursor.fetchall()
-    tot_amount = rows[0][0]
+    tot_amount = row[0][0]
     cursor.execute("SELECT product.name,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM item inner join product on(item.product_id=product.product_id) WHERE item.order_id=?",(order_id,))
     
 
