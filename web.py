@@ -38,7 +38,7 @@ def customer_login():
             cursor.execute("SELECT customer_id FROM customer WHERE phone=?",(phone,))
             rows = cursor.fetchall()
             customer_id = rows[0][0]
-            cursor.execute("INSERT INTO order (customer_id) VALUES (?)",(customer_id,))
+            cursor.execute("INSERT INTO [order] (customer_id) VALUES (?)",(customer_id,))
             conn.commit() 
             order_id = cursor.lastrowid
             return render_template("order_drink.html")
@@ -92,7 +92,7 @@ def order_drink():
 def add_order():
     global order_id
     if request.method == 'POST':
-        cursor.execute("SELECT max(item.id) FROM item inner join order on(order.order_id=item.order_id)")
+        cursor.execute("SELECT max(item.id) FROM item inner join [order] on([order].order_id=item.order_id)")
         rows = cursor.fetchall()
         item_id =rows[0][0]+1
 
@@ -149,7 +149,7 @@ def order_success():
 
 @app.route("/inf_bt",methods=['GET','POST']) #店家查看訂單頁面 inf對應按鈕
 def inf_bt():   
-    cursor.execute("SELECT order.order_id FROM order")
+    cursor.execute("SELECT [order].order_id FROM [order]")
     rows = cursor.fetchall()
     return render_template("store_check.html",items=rows)
 
@@ -158,7 +158,7 @@ def inf_bt():
 @app.route("/admin_order_detail",methods=['GET','POST']) #店家查看詳細訂單頁面
 def admin_order_detail():
     global order_id
-    cursor.execute("SELECT tot_price,item.item_id,item.order_id,item.product_id,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM order inner join item on(item.order_id=order.order_id) WHERE order.order_id=?",(order_id,))
+    cursor.execute("SELECT tot_price,item.item_id,item.order_id,item.product_id,item.size,item.ice,item.sugar,item.temperature,item.quantity FROM [order] inner join item on(item.order_id=[order].order_id) WHERE [order].order_id=?",(order_id,))
     rows = cursor.fetchall()
     return  render_template("admin_order_detail.html",items=rows)
 
@@ -170,7 +170,7 @@ def admin_order():
     int_bt = request.form.get("inf_bt")
 
     if request.method == 'POST': #店家查看細部資訊
-        cursor.execute("SELECT order_id FROM order WHERE order_id=?",(int(int_bt),))
+        cursor.execute("SELECT order_id FROM [order] WHERE order_id=?",(int(int_bt),))
         rows = cursor.fetchall()
         if not rows:
             return render_template("admin_order.html",items=rows)
@@ -178,7 +178,7 @@ def admin_order():
             order_id = rows[0][0]
             return render_template("admin_order_detail.html",items=rows)
         
-    cursor.execute("SELECT order.order_id,customer.phone,order.status FROM order inner join customer on(customer.customer_id=order.customer_id)")
+    cursor.execute("SELECT [order].order_id,customer.phone,[order].status FROM [order] inner join customer on(customer.customer_id=[order].customer_id)")
     rows = cursor.fetchall()
     return render_template("admin_order.html",items=rows)
 
