@@ -40,7 +40,6 @@
             color: #555;
         }
 
-        /* 中間內容：左邊飲料圖片、右邊輸入欄位 */
         .content {
             display: flex;
             gap: 24px;
@@ -120,6 +119,11 @@
             margin-top: 10px;
             font-size: 14px;
         }
+        .error {
+            color: #d32f2f;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -131,7 +135,8 @@
 
             <div class="header-info">
                 顧客電話：{{ customer_phone if customer_phone is defined else '（之後由後端填入）' }}<br>
-                今日日期：{{ today if today is defined else '2025-01-01' }}
+                今日日期：{{ today if today is defined else '2025-01-01' }}<br>
+                訂單編號：{{ order_id if order_id is defined else '' }}
             </div>
         </div>
 
@@ -153,7 +158,15 @@
 
             <!-- 右邊：點單表單 -->
             <div class="form-area">
-                <form action="#" method="post">
+                {% if error_msg %}
+                <div class="error">{{ error_msg }}</div>
+                {% endif %}
+                <!-- ✅ 送到 /add_order -->
+                <form action="{{ url_for('add_order') }}" method="post">
+                    <!-- 把顧客電話、訂單編號一起送出去（隱藏欄位） -->
+                    <input type="hidden" name="phone" value="{{ customer_phone }}">
+                    <input type="hidden" name="order_id" value="{{ order_id }}">
+
                     <div class="form-row">
                         <label for="drink">飲品：</label>
                         <select id="drink" name="drink">

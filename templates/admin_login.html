@@ -7,14 +7,11 @@
     <style>
         body {
             font-family: Arial, "微軟正黑體", sans-serif;
-
-            /* 用 Flask static 路徑抓店家登入背景圖 */
             background-image: url("{{ url_for('static', filename='img/店家登入.jpg') }}");
-            background-size: cover;          /* 圖片填滿畫面 */
-            background-position: center;      /* 置中 */
-            background-repeat: no-repeat;     /* 不重複 */
-            background-color: #f5f5f5;        /* 備用底色 */
-
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #f5f5f5;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,8 +42,7 @@
             margin-bottom: 4px;
         }
 
-        input[type="text"],
-        input[type="password"] {
+        input[type="text"] {
             width: 260px;
             padding: 8px 10px;
             font-size: 16px;
@@ -59,7 +55,7 @@
             border-radius: 6px;
             border: none;
             cursor: pointer;
-            background-color: #ff9800;   /* 跟首頁店家按鈕一樣橘色 */
+            background-color: #ff9800;
             color: #fff;
         }
 
@@ -72,22 +68,30 @@
             margin-top: 15px;
             font-size: 14px;
         }
+
+        .error {
+            color: #d32f2f;
+            margin-top: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>店家登入</h1>
 
+        {% if error_msg %}
+        <div class="error">
+            {{ error_msg }}
+        </div>
+        {% endif %}
+
         <!-- 送到 Flask 的 admin_login 路由（同時處理 GET / POST） -->
         <form action="{{ url_for('admin_login') }}" method="post">
             <div class="field">
                 <label for="shopId">店家 ID：</label>
-                <input type="text" id="shopId" name="shopId" required>
-            </div>
-
-            <div class="field">
-                <label for="password">密碼：</label>
-                <input type="password" id="password" name="password" required>
+                <input type="text" id="shopId" name="shopId" required
+                       value="{{ old_shopId if old_shopId is defined else '' }}">
             </div>
 
             <button type="submit">登入</button>
