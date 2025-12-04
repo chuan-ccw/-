@@ -1,4 +1,3 @@
-<!-- templates/customer_login.html -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -7,105 +6,88 @@
     <style>
         body {
             font-family: Arial, "微軟正黑體", sans-serif;
-
-            /* 用 Flask 的 static 路徑抓顧客登入背景圖 */
             background-image: url("{{ url_for('static', filename='img/登入背景.jpg') }}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-color: #f5f5f5;
-
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
-
         .container {
             background-color: rgba(255, 255, 255, 0.95);
             padding: 40px 60px;
             border-radius: 12px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: center;
+            width: 350px;
         }
-
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        label,
-        input {
-            font-size: 18px;
-        }
-
-        input[type="text"] {
-            padding: 8px 12px;
-            margin: 10px 0;
-            width: 220px;
+        h1 { margin-bottom: 20px; font-size: 24px; }
+        label { display: block; text-align: left; margin-bottom: 5px; font-weight: bold; }
+        
+        input[type="text"], select {
+            padding: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box; /* 確保 padding 不會撐開寬度 */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
         }
 
         button {
-            padding: 10px 30px;
+            padding: 10px 0;
+            width: 100%;
             font-size: 18px;
             border-radius: 6px;
             border: none;
             cursor: pointer;
             background-color: #2196F3;
             color: #fff;
+            margin-top: 10px;
         }
-
-        button:hover {
-            opacity: 0.85;
-        }
-
-        a.back {
-            display: inline-block;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        .error {
-            color: #d32f2f;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .hint {
-            font-size: 12px;
-            color: #666;
-        }
+        button:hover { opacity: 0.85; }
+        a.back { display: inline-block; margin-top: 15px; font-size: 14px; text-decoration: none; color: #555; }
+        .error { color: #d32f2f; margin-bottom: 10px; font-size: 14px; }
+        .hint { font-size: 12px; color: #666; text-align: left; margin-top: -10px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>顧客登入 / 建立訂單</h1>
 
-        <!-- 後端回傳的錯誤訊息 -->
         {% if error_msg %}
-        <div class="error">
-            {{ error_msg }}
-        </div>
+        <div class="error">{{ error_msg }}</div>
         {% endif %}
 
-        <!-- 表單送到 Flask 的 /customer（login_customer 函式） -->
-        <form action="{{ url_for('login_customer') }}" method="post">
-            <label for="phone">電話：</label>
-            <input type="text"
-                   id="phone"
-                   name="phone"
-                   required
-                   minlength="10"
-                   maxlength="10"
-                   pattern="[0-9]{10}"
+        <form action="{{ url_for('customer_login') }}" method="post">
+            
+            <label for="store_id">選擇店家：</label>
+            <select name="store_id" id="store_id" required>
+                <option value="" disabled selected>請選擇服務店家</option>
+                {% if stores %}
+                    {% for store in stores %}
+                    <option value="{{ store.id }}">{{ store.name }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option value="" disabled>載入店家失敗</option>
+                {% endif %}
+            </select>
+
+            <label for="phone">手機號碼：</label>
+            <input type="text" id="phone" name="phone" required
+                   minlength="10" maxlength="10" pattern="[0-9]{10}"
+                   placeholder="09xxxxxxxx"
                    value="{{ old_phone if old_phone is defined else '' }}">
-            <div class="hint">請輸入 10 位數字的手機號碼，例如：0912345678</div>
+            <div class="hint">請輸入 10 位數字</div>
 
             <button type="submit">開始點餐</button>
         </form>
 
-        <!-- 回首頁：走 index 路由（/） -->
-        <a href="{{ url_for('index') }}" class="back">← 回首頁</a>
+        <a href="{{ url_for('index') }}" class="back">回首頁</a>
     </div>
 </body>
 </html>
