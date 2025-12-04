@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>訂單完成紀錄</title>
     <style>
+        /* 原本的 CSS 不變，略 */
         body {
             font-family: Arial, "微軟正黑體", sans-serif;
             background-color: #f5f5f5;
@@ -104,7 +105,8 @@
 
         {% if order %}
         <div class="box">
-            <div class="info-row">訂單編號：{{ order.code }}</div>
+            <div class="info-row">訂單編號：{{ order.order_id }}</div>
+            <div class="info-row">編號：{{ order.code }}</div>
             <div class="info-row">顧客電話：{{ order.phone or '-' }}</div>
             <div class="info-row">狀態：{{ order.status }}</div>
             <div class="info-row">
@@ -119,6 +121,7 @@
                 <thead>
                     <tr>
                         <th>序號</th>
+                        <th>編號</th>
                         <th>品名</th>
                         <th>尺寸</th>
                         <th>冰量</th>
@@ -134,6 +137,7 @@
                     {% for it in items %}
                     <tr>
                         <td>{{ loop.index }}</td>
+                        <td>{{ it.code }}</td>
                         <td>{{ it.product_name }}</td>
                         <td>{{ it.size }}</td>
                         <td>{{ it.ice }}</td>
@@ -146,13 +150,13 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="9">此訂單尚無明細。</td>
+                        <td colspan="10">此訂單尚無明細。</td>
                     </tr>
                     {% endif %}
                 </tbody>
                 <tfoot>
                     <tr class="total-row">
-                        <td colspan="8">總金額</td>
+                        <td colspan="9">總金額</td>
                         <td class="total-amount">${{ total_amount }}</td>
                     </tr>
                 </tfoot>
