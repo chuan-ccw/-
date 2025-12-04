@@ -1,40 +1,79 @@
-首頁(index.html)
-
+首頁(index.html):
+    兩個button
+        我是店家 -> admin_login.html
+        我是客人 -> customer_login.html
 
 店家:
-登入要從azure db 確認是否在store.store_id 內才能登入
-所有訂單畫面要去db撈 order 找store_id 為目前id的訂單
-詳細資料則是要去找對應order_id的明細
+    登入畫面(admin_login.html):
+        登入要從azure db 確認是否在store.store_id 內才能登入
+        登入(button) -> admin_orders.html
+        回首頁(button) -> index.html
+    
+    店家查看所有訂單畫面(admin_orders.html):
+        所有訂單表格:
+            所有order中找出的store_id是目前store_id的order並顯示order_id, customer_id 對應的customer.phone,status
+            order.status 是按鈕(顯示目前的status資訊) 按下後切換為已完成 online DB中status也要改為 N"已完成"
+            多加一欄 "詳細資訊" 欄, 每一row都是一個button(-> admin_order_detail.html)按下後的畫面是根據那一row的order_id所查詢
+        
+    單筆訂單詳細資料畫面(admin_order_detail.html):
+        目前訂單表格:所有item中找出的order_id是目前訂單id的item並顯示
+        總金額:所有item中找出的order_id是目前訂單id的item, 依照item中的product_id去找product.price, 把所有在訂單中飲料價錢作加總
+        總數量:所有item中找出的order_id是目前訂單id的item, 依照item中的quantity取出, 把所有在訂單中飲料數量作加總
 
+        返回(admin_order_detail.html -> admin_orders.html)(button):      
 
 客人:
-登入畫面(customer_login.html):
-登入要從azure db 確認是否在customer.phone 內才能登入
-                如果不存在可以新增置online azure資料庫
-                格式要符合台灣行動電話號碼一律以09 開頭，後接8 位數字(用regex檢查)
+    登入畫面(customer_login.html):
+        登入要從azure db 確認是否在customer.phone 內才能登入
+                        如果不存在可以新增到online azure資料庫
+                        格式要符合台灣行動電話號碼一律以09 開頭，後接8 位數字(用regex檢查)
+        開始點餐(button) -> order_drink.html 
+        回首頁(button) -> index.html
 
-點餐畫面(order_drink.html)
-先選擇店家(下拉式選單) 從db取所有店家(store.name)
-客人客製化(飲品, 尺寸, 冰量, 甜度, 數量, 冷/熱):
-要從下拉是選單選擇product.name然後去資料庫select對應photo_url顯示在左側
-    item_id     INT,
-    order_id    INT NULL,
-    product_id  INT NULL,
-    size        NVARCHAR(10),
-    ice         NVARCHAR(10),
-    sugar       NVARCHAR(10),
-    temperature NVARCHAR(10),
-    quantity    INT,
-加入訂單:把資訊加入到item table裡面
-目前訂單(order_drink.html -> order_summary.html)(buttom):所有item中找出的order_id是目前訂單id的item並顯示
-結帳(order_summary.html -> order_success.html)(buttom):
-    所有item中找出的order_id是目前訂單id的item並顯示
+    點餐畫面(order_drink.html):
+        顯示顧客電話(customer.phone) 
+        顯示訂單編號(order.order_id) 要去DB找order的最大order_id + 1
+        先選擇店家(下拉式選單) 從db取所有店家(store.name)
+
+        客人客製化(飲品, 尺寸, 冰量, 甜度, 數量, 冷/熱):
+            飲品(下拉式選單) 從db取所有飲品名稱(product.name)
+            左側要顯示對應飲品照片 從db取所有飲品圖片連結(product.photo_url)
+            要從下拉是選單選擇product.name然後去資料庫select對應photo_url顯示在左側
+        
+        目前訂單(button)(order_drink.html -> order_summary.html):
+                
+        加入訂單(button):把資訊加入到item table裡面
+                item_id     INT,
+                order_id    INT NULL,
+                product_id  INT NULL,
+                size        NVARCHAR(10),
+                ice         NVARCHAR(10),
+                sugar       NVARCHAR(10),
+                topping     NVARCHAR(10),
+                quantity    INT,
+        
+    訂單細項畫面(order_summary.html):
+        目前訂單表格:所有item中找出的order_id是目前訂單id的item並顯示
+        總金額:所有item中找出的order_id是目前訂單id的item, 依照item中的product_id去找product.price, 把所有在訂單中飲料價錢作加總
+        總數量:所有item中找出的order_id是目前訂單id的item, 依照item中的quantity取出, 把所有在訂單中飲料數量作加總
+
+        返回點餐(order_summary.html -> order_drink.html)(button):
+        
+        結帳(order_summary.html -> order_success.html)(button):
+        把資訊加入到order table裡面
+            order_id    INT,
+            store_id    INT NULL,
+            customer_id INT NULL,
+            tot_price   INT,
+            tot_amount  INT,
+            status      NVARCHAR(10), <- 狀態標示 N"未完成"
+    
+    下單成功畫面(order_success.html):
+        顯示目前訂單編號(order.order_id) 
+        顯示目前店家名稱 在order table 中找到目前order_id 對應的store_id, 再去store table 中找到目前store_id 對應的store.name,
+        目前訂單表格:所有item中找出的order_id是目前訂單id的item並顯示
+        總金額:所有item中找出的order_id是目前訂單id的item, 依照item中的product_id去找product.price, 把所有在訂單中飲料價錢作加總
+        
+        再次訂購(order_success.html -> order_drink.html)(button)
 
 
-
-客人下訂單頁面:要select的tot_price、tot_amount 所有item的外鑑對應到目前編輯的order_id
-結帳按鈕:insert 所有item的外鑑對應到目前編輯的order_id
-
-客人下訂單成功:select 與order_id相同的所有item和order的tot_price、order_id、store_id 
-
-再次訂購:insert一個新的order_id
