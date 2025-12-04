@@ -65,13 +65,14 @@ def admin_login():
 def admin_orders():
     store_id = session.get('admin_store_id')
     store_name = session.get('admin_store_name')
+    selected_id = request.args.get('selected_id') # 取得目前被選取的訂單 ID
+
     if not store_id: return redirect(url_for("admin_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # ✅ 修改 SQL 查詢：加入 AND ISNULL(o.tot_price, 0) > 0
-    # 這樣就會過濾掉金額為 0 或 NULL (尚未結帳) 的訂單
+    # 1. 查詢該店家的「所有訂單列表」 (左側用)
     cursor.execute("""
         SELECT o.order_id, c.phone, o.status, o.tot_price
         FROM [order] o 
@@ -89,29 +90,79 @@ def admin_orders():
         } 
         for r in cursor.fetchall()
     ]
+
+    # 2. 如果有 selected_id，查詢「該筆訂單的明細」 (右側用)
+    selected_info = None
+    selected_items = []
     
+    if selected_id:
+        # 查訂單 Header
+        cursor.execute("""
+            SELECT o.order_id, o.status, c.phone, o.tot_price
+            FROM [order] o
+            LEFT JOIN customer c ON o.customer_id = c.customer_id
+            WHERE o.order_id = ? AND o.store_id = ?
+        """, (selected_id, store_id))
+        row = cursor.fetchone()
+        
+        if row:
+            selected_info = {
+                "order_id": row[0],
+                "status": row[1],
+                "phone": row[2] if row[2] else "未知",
+                "tot_price": row[3]
+            }
+
+            # 查訂單 Items
+            cursor.execute("""
+                SELECT i.item_id, p.name, i.size, i.ice, i.sugar, i.topping, i.quantity, p.price
+                FROM item i 
+                JOIN product p ON i.product_id = p.product_id 
+                WHERE i.order_id = ?
+            """, (selected_id,))
+            
+            # 計算與整理資料
+            tot_q = 0
+            for r in cursor.fetchall():
+                sub = r[7] * r[6]
+                tot_q += r[6]
+                selected_items.append({
+                    "product_name": r[1], 
+                    "size": r[2], 
+                    "ice": r[3], 
+                    "sugar": r[4], 
+                    "topping": r[5], 
+                    "quantity": r[6], 
+                    "price": r[7], 
+                    "subtotal": sub
+                })
+            # 將總數量加進 info 方便顯示
+            selected_info['total_qty'] = tot_q
+
     conn.close()
     
     return render_template(
         "admin_order.html", 
         orders=orders, 
         store_id=store_id, 
-        store_name=store_name
+        store_name=store_name,
+        selected_info=selected_info,   # 傳遞選中的訂單資訊
+        selected_items=selected_items  # 傳遞選中的訂單項目
     )
 
 @app.route("/admin_update_status", methods=["POST"])
 def admin_update_status():
-    # 這個路由負責處理狀態切換，收到 POST 請求後，將訂單狀態設為 N'已完成'
     store_id = session.get('admin_store_id')
     order_id = request.form.get("order_id")
     
     if store_id and order_id:
         conn = get_db_connection()
-        # 更新狀態為 N'已完成'
         conn.execute("UPDATE [order] SET status = N'已完成' WHERE order_id = ? AND store_id = ?", (order_id, store_id))
         conn.commit()
         conn.close()
-    return redirect(url_for("admin_orders"))
+        
+    # 修改 redirect，帶上 selected_id 參數，讓畫面回來時還是在這筆訂單上
+    return redirect(url_for("admin_orders", selected_id=order_id))
 
 
 @app.route("/admin_order_detail/<int:order_id>")
