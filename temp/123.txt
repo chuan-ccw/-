@@ -10,17 +10,25 @@
         回首頁(button) -> index.html
     
     店家查看所有訂單畫面(admin_orders.html):
-        所有訂單表格:
+        所有未完成訂單表格:
+            只顯示未完成訂單
             所有order中找出的store_id是目前store_id的order並顯示order_id, customer_id 對應的customer.phone,status
-            order.status 是按鈕(顯示目前的status資訊) 按下後切換為已完成 online DB中status也要改為 N"已完成"
-            多加一欄 "詳細資訊" 欄, 每一row都是一個button(-> admin_order_detail.html)按下後的畫面是根據那一row的order_id所查詢
+            order.status 是按鈕(顯示目前的status資訊) 按下後切換為已完成 online DB中status也要改為 N"已完成" 表單不在顯示那一筆order_id的row
+            多加一欄 "詳細資訊" 欄, 每一row都是一個button(顯示在同頁面右邊)按下後的畫面是根據那一row的order_id所查詢
         
-    單筆訂單詳細資料畫面(admin_order_detail.html):
-        目前訂單表格:所有item中找出的order_id是目前訂單id的item並顯示
-        總金額:所有item中找出的order_id是目前訂單id的item, 依照item中的product_id去找product.price, 把所有在訂單中飲料價錢作加總
-        總數量:所有item中找出的order_id是目前訂單id的item, 依照item中的quantity取出, 把所有在訂單中飲料數量作加總
+        新增歷史訂單按鈕(button) -> admin_history_orders.html
 
-        返回(admin_order_detail.html -> admin_orders.html)(button):      
+    歷史訂單畫面(admin_history_orders.html):
+        所有已完成訂單表格:
+            只顯示已完成訂單
+            所有order中找出的store_id是目前store_id的order並顯示order_id, customer_id 對應的customer.phone,status
+            多加一欄 "詳細資訊" 欄, 每一row都是一個button(顯示在同頁面右邊 如同admin.orders.html)按下後的畫面是根據那一row的order_id所查詢
+    # 單筆訂單詳細資料畫面(admin_order_detail.html):
+    #     目前訂單表格:所有item中找出的order_id是目前訂單id的item並顯示
+    #     總金額:所有item中找出的order_id是目前訂單id的item, 依照item中的product_id去找product.price, 把所有在訂單中飲料價錢作加總
+    #     總數量:所有item中找出的order_id是目前訂單id的item, 依照item中的quantity取出, 把所有在訂單中飲料數量作加總
+
+    #     返回(admin_order_detail.html -> admin_orders.html)(button):      
 
 客人:
     登入畫面(customer_login.html):

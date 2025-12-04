@@ -65,38 +65,67 @@ def admin_login():
 def admin_orders():
     store_id = session.get('admin_store_id')
     store_name = session.get('admin_store_name')
-    selected_id = request.args.get('selected_id') # 取得目前被選取的訂單 ID
+    selected_id = request.args.get('selected_id') 
 
     if not store_id: return redirect(url_for("admin_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. 查詢該店家的「所有訂單列表」 (左側用)
+    # 1. 修改 SQL：加入 AND o.status = N'未完成'
     cursor.execute("""
         SELECT o.order_id, c.phone, o.status, o.tot_price
         FROM [order] o 
         LEFT JOIN customer c ON o.customer_id = c.customer_id
-        WHERE o.store_id = ? AND ISNULL(o.tot_price, 0) > 0
-        ORDER BY o.order_id DESC
+        WHERE o.store_id = ? 
+          AND ISNULL(o.tot_price, 0) > 0 
+          AND o.status = N'未完成'  -- ✅ 只撈未完成
+        ORDER BY o.order_id ASC    -- 未完成的訂單通常按時間順序處理 (舊的在前)
     """, (store_id,))
     
     orders = [
-        {
-            "order_id": r[0], 
-            "phone": r[1] or "未知", 
-            "status": r[2] or "未完成", 
-            "tot_price": r[3] or 0 
-        } 
+        { "order_id": r[0], "phone": r[1] or "未知", "status": r[2] or "未完成", "tot_price": r[3] or 0 } 
         for r in cursor.fetchall()
     ]
 
-    # 2. 如果有 selected_id，查詢「該筆訂單的明細」 (右側用)
+    # 2. 查詢右側詳細資訊 (共用邏輯)
+    selected_info, selected_items = get_order_details(conn, selected_id, store_id)
+
+    conn.close()
+    
+    return render_template(
+        "admin_order.html", 
+        orders=orders, 
+        store_id=store_id, 
+        store_name=store_name,
+        selected_info=selected_info,
+        selected_items=selected_items
+    )
+
+# 更新狀態
+@app.route("/admin_update_status", methods=["POST"])
+def admin_update_status():
+    store_id = session.get('admin_store_id')
+    order_id = request.form.get("order_id")
+    
+    if store_id and order_id:
+        conn = get_db_connection()
+        conn.execute("UPDATE [order] SET status = N'已完成' WHERE order_id = ? AND store_id = ?", (order_id, store_id))
+        conn.commit()
+        conn.close()
+        
+    # 因為變成「已完成」了，所以在「admin_orders」頁面中它會消失
+    # 我們重導回 admin_orders，不帶 selected_id，因為該筆訂單已經不在列表中了
+    return redirect(url_for("admin_orders"))
+
+# 輔助函式：避免重複寫查詢明細的程式碼
+def get_order_details(conn, selected_id, store_id):
     selected_info = None
     selected_items = []
     
     if selected_id:
-        # 查訂單 Header
+        cursor = conn.cursor()
+        # 查 Header
         cursor.execute("""
             SELECT o.order_id, o.status, c.phone, o.tot_price
             FROM [order] o
@@ -113,7 +142,7 @@ def admin_orders():
                 "tot_price": row[3]
             }
 
-            # 查訂單 Items
+            # 查 Items
             cursor.execute("""
                 SELECT i.item_id, p.name, i.size, i.ice, i.sugar, i.topping, i.quantity, p.price
                 FROM item i 
@@ -121,49 +150,58 @@ def admin_orders():
                 WHERE i.order_id = ?
             """, (selected_id,))
             
-            # 計算與整理資料
             tot_q = 0
             for r in cursor.fetchall():
                 sub = r[7] * r[6]
                 tot_q += r[6]
                 selected_items.append({
-                    "product_name": r[1], 
-                    "size": r[2], 
-                    "ice": r[3], 
-                    "sugar": r[4], 
-                    "topping": r[5], 
-                    "quantity": r[6], 
-                    "price": r[7], 
-                    "subtotal": sub
+                    "product_name": r[1], "size": r[2], "ice": r[3], "sugar": r[4], 
+                    "topping": r[5], "quantity": r[6], "price": r[7], "subtotal": sub
                 })
-            # 將總數量加進 info 方便顯示
             selected_info['total_qty'] = tot_q
+            
+    return selected_info, selected_items
+
+@app.route("/admin_history_orders")
+def admin_history_orders():
+    store_id = session.get('admin_store_id')
+    store_name = session.get('admin_store_name')
+    selected_id = request.args.get('selected_id') 
+
+    if not store_id: return redirect(url_for("admin_login"))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 1. SQL：加入 AND o.status = N'已完成'
+    cursor.execute("""
+        SELECT o.order_id, c.phone, o.status, o.tot_price
+        FROM [order] o 
+        LEFT JOIN customer c ON o.customer_id = c.customer_id
+        WHERE o.store_id = ? 
+          AND ISNULL(o.tot_price, 0) > 0 
+          AND o.status = N'已完成'  -- ✅ 只撈已完成
+        ORDER BY o.order_id DESC   -- 歷史訂單通常看最新的 (新的在前)
+    """, (store_id,))
+    
+    orders = [
+        { "order_id": r[0], "phone": r[1] or "未知", "status": r[2] or "已完成", "tot_price": r[3] or 0 } 
+        for r in cursor.fetchall()
+    ]
+
+    # 2. 查詢右側詳細資訊 (共用邏輯)
+    selected_info, selected_items = get_order_details(conn, selected_id, store_id)
 
     conn.close()
     
     return render_template(
-        "admin_order.html", 
+        "admin_history_orders.html",  # ✅ 導向新的歷史訂單頁面
         orders=orders, 
         store_id=store_id, 
         store_name=store_name,
-        selected_info=selected_info,   # 傳遞選中的訂單資訊
-        selected_items=selected_items  # 傳遞選中的訂單項目
+        selected_info=selected_info,
+        selected_items=selected_items
     )
-
-@app.route("/admin_update_status", methods=["POST"])
-def admin_update_status():
-    store_id = session.get('admin_store_id')
-    order_id = request.form.get("order_id")
-    
-    if store_id and order_id:
-        conn = get_db_connection()
-        conn.execute("UPDATE [order] SET status = N'已完成' WHERE order_id = ? AND store_id = ?", (order_id, store_id))
-        conn.commit()
-        conn.close()
-        
-    # 修改 redirect，帶上 selected_id 參數，讓畫面回來時還是在這筆訂單上
-    return redirect(url_for("admin_orders", selected_id=order_id))
-
 
 @app.route("/admin_order_detail/<int:order_id>")
 def admin_order_detail(order_id):
