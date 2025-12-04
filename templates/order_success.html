@@ -1,120 +1,86 @@
-<!-- templates/order_success.html -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <title>下單成功</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, "微軟正黑體", sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-
-        .page-wrapper {
-            max-width: 700px;
-            margin: 40px auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 24px 32px;
-        }
-
-        h1 {
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 24px;
-            color: #2e7d32;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .box {
-            margin-top: 12px;
-            margin-bottom: 16px;
-            min-height: 120px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            color: #444;
-            background-color: #fafafa;
-        }
-
-        .footer-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-        }
-
-        .total-label {
-            font-size: 16px;
-        }
-
-        .total-amount {
-            color: #d32f2f;
-            font-weight: bold;
-            font-size: 20px;
-            margin-left: 4px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 8px 20px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            background-color: #2196F3;
-            color: #fff;
-        }
-
-            .btn:hover {
-                opacity: 0.9;
-            }
-
-        .hint {
-            font-size: 13px;
-            color: #777;
-        }
+        body { background-color: #f8f9fa; padding: 20px; }
+        .container { max-width: 900px; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        .page-header { border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
+        .total-section { font-size: 1.4em; font-weight: bold; text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
+        .total-price { color: #d32f2f; font-size: 1.6em; }
+        .store-badge { background-color: #28a745; color: #fff; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 1em; margin-right: 15px;}
+        .alert-success-custom { background-color: #e6ffed; border-color: #c3e6cb; color: #155724; }
+        .badge { font-size: 0.95em; padding: 6px 10px; font-weight: normal; }
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
-        <h1>下單成功！</h1>
-
-        <div class="info-row">
-            <div>訂單編號：{{ order_id }}</div>
-            <div>店家編號：{{ store_id }}</div>
+    <div class="container">
+        <div class="alert alert-success-custom text-center py-3">
+            <h2>🎉 恭喜！下單成功</h2>
         </div>
 
-        <div class="info-row">
-            <div>顧客電話：{{ customer_phone }}</div>
-        </div>
-
-        <!-- 中間的方框（你草稿圖上的大格子） -->
-        <div class="box">
-            <p>您的訂單已送出至店家，請稍候準備飲料。</p>
-            <p class="hint">若需修改訂單內容，請直接聯繫店家或重新下單。</p>
-        </div>
-
-        <div class="footer-row">
-            <div class="total-label">
-                總金額：<span class="total-amount">${{ total_amount }}</span>
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="store-badge">店家：{{ store_name }}</span> 
             </div>
+            <div class="text-end">
+                訂單編號：{{ order_id }} <br>
+                顧客電話：{{ customer_phone }}
+            </div>
+        </div>
 
-            <!-- 再次訂購：回到顧客登入，重新開始一張新訂單 -->
-            <a class="btn" href="{{ url_for('customer_login') }}">
+        {% if items %}
+        <h4 class="mb-3">訂單明細</h4>
+        <table class="table table-striped table-hover align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>品名</th>
+                    <th>尺寸</th>
+                    <th>冰量</th>
+                    <th>甜度</th>
+                    <th>加料</th>
+                    <th>數量</th>
+                    <th>單價</th>
+                    <th>小計</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td><span class="badge bg-secondary">{{ item.size }}</span></td>
+                    <td><span class="badge bg-info text-dark">{{ item.ice }}</span></td>
+                    <td><span class="badge bg-warning text-dark">{{ item.sugar }}</span></td>
+                    <td>
+                        {% if item.topping and item.topping != '無' %}
+                        <span class="badge bg-primary">{{ item.topping }}</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.price }}</td>
+                    <td>${{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="total-section">
+            總金額：<span class="total-price">${{ total_amount }}</span>
+        </div>
+        
+        {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            此訂單內沒有任何飲料項目。
+        </div>
+        {% endif %}
+
+        <div class="text-center mt-5">
+            <p class="text-muted">您的訂單已送出至店家「{{ store_name }}」，請稍候準備飲料。</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('customer_login') }}">
                 再次訂購
             </a>
         </div>
