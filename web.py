@@ -56,31 +56,50 @@ def admin_login():
         if row:
             session['admin_store_id'] = row[0]
             session['admin_store_name'] = row[1]
+            # 登入時清除舊的選取狀態
+            session.pop('admin_selected_id', None)
             return redirect(url_for("admin_orders"))
         else:
             return render_template("admin_login.html", error_msg="店家 ID 不存在", old_shopId=store_id)
     return render_template("admin_login.html")
 
+# ✅ 新增：專門處理「選取訂單」的路由 (寫入 Session 並轉跳)
+@app.route("/admin_select_order")
+def admin_select_order():
+    order_id = request.args.get('order_id')
+    source = request.args.get('source') # 來源頁面: 'pending' 或 'history'
+    
+    if order_id:
+        session['admin_selected_id'] = order_id
+    
+    if source == 'history':
+        return redirect(url_for('admin_history_orders'))
+    else:
+        return redirect(url_for('admin_orders'))
+
+# ✅ 待處理訂單 (改從 Session 讀取 selected_id)
 @app.route("/admin_orders")
 def admin_orders():
     store_id = session.get('admin_store_id')
     store_name = session.get('admin_store_name')
-    selected_id = request.args.get('selected_id') 
+    
+    # 從 Session 取得選中的 ID
+    selected_id = session.get('admin_selected_id')
 
     if not store_id: return redirect(url_for("admin_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. 修改 SQL：加入 AND o.status = N'未完成'
+    # 1. 列表：只撈未完成
     cursor.execute("""
         SELECT o.order_id, c.phone, o.status, o.tot_price
         FROM [order] o 
         LEFT JOIN customer c ON o.customer_id = c.customer_id
         WHERE o.store_id = ? 
           AND ISNULL(o.tot_price, 0) > 0 
-          AND o.status = N'未完成'  -- ✅ 只撈未完成
-        ORDER BY o.order_id ASC    -- 未完成的訂單通常按時間順序處理 (舊的在前)
+          AND o.status = N'未完成'
+        ORDER BY o.order_id ASC
     """, (store_id,))
     
     orders = [
@@ -88,7 +107,7 @@ def admin_orders():
         for r in cursor.fetchall()
     ]
 
-    # 2. 查詢右側詳細資訊 (共用邏輯)
+    # 2. 明細 (共用函式)
     selected_info, selected_items = get_order_details(conn, selected_id, store_id)
 
     conn.close()
@@ -102,7 +121,7 @@ def admin_orders():
         selected_items=selected_items
     )
 
-# 更新狀態
+# ✅ 更新狀態
 @app.route("/admin_update_status", methods=["POST"])
 def admin_update_status():
     store_id = session.get('admin_store_id')
@@ -114,8 +133,9 @@ def admin_update_status():
         conn.commit()
         conn.close()
         
-    # 因為變成「已完成」了，所以在「admin_orders」頁面中它會消失
-    # 我們重導回 admin_orders，不帶 selected_id，因為該筆訂單已經不在列表中了
+        # 訂單完成後，清除目前的選取狀態，避免畫面右側還顯示那張已經消失的訂單
+        session.pop('admin_selected_id', None)
+        
     return redirect(url_for("admin_orders"))
 
 # 輔助函式：避免重複寫查詢明細的程式碼
@@ -162,26 +182,29 @@ def get_order_details(conn, selected_id, store_id):
             
     return selected_info, selected_items
 
+# ✅ 歷史訂單 (改從 Session 讀取 selected_id)
 @app.route("/admin_history_orders")
 def admin_history_orders():
     store_id = session.get('admin_store_id')
     store_name = session.get('admin_store_name')
-    selected_id = request.args.get('selected_id') 
+    
+    # 從 Session 取得選中的 ID
+    selected_id = session.get('admin_selected_id')
 
     if not store_id: return redirect(url_for("admin_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. SQL：加入 AND o.status = N'已完成'
+    # 1. 列表：只撈已完成
     cursor.execute("""
         SELECT o.order_id, c.phone, o.status, o.tot_price
         FROM [order] o 
         LEFT JOIN customer c ON o.customer_id = c.customer_id
         WHERE o.store_id = ? 
           AND ISNULL(o.tot_price, 0) > 0 
-          AND o.status = N'已完成'  -- ✅ 只撈已完成
-        ORDER BY o.order_id DESC   -- 歷史訂單通常看最新的 (新的在前)
+          AND o.status = N'已完成'
+        ORDER BY o.order_id DESC
     """, (store_id,))
     
     orders = [
@@ -189,20 +212,19 @@ def admin_history_orders():
         for r in cursor.fetchall()
     ]
 
-    # 2. 查詢右側詳細資訊 (共用邏輯)
+    # 2. 明細
     selected_info, selected_items = get_order_details(conn, selected_id, store_id)
 
     conn.close()
     
     return render_template(
-        "admin_history_orders.html",  # ✅ 導向新的歷史訂單頁面
+        "admin_history_orders.html",
         orders=orders, 
         store_id=store_id, 
         store_name=store_name,
         selected_info=selected_info,
         selected_items=selected_items
     )
-
 @app.route("/admin_order_detail/<int:order_id>")
 def admin_order_detail(order_id):
     if not session.get('admin_store_id'): return redirect(url_for("admin_login"))

@@ -53,7 +53,7 @@
                                     </form>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('admin_orders', selected_id=order.order_id) }}" 
+                                    <a href="{{ url_for('admin_select_order', order_id=order.order_id, source='pending') }}" 
                                        class="btn btn-info btn-sm text-white">查看</a>
                                 </td>
                             </tr>
@@ -144,7 +144,7 @@
     
     <script>
         // ==========================================
-        // 1. 原本的 Modal 控制程式碼 (維持不變)
+        // 1. Modal 控制程式碼
         // ==========================================
         let targetForm = null; 
 
@@ -163,7 +163,7 @@
         });
 
         // ==========================================
-        // 2. ✅ 新增：自動刷新頁面機制
+        // 2. 自動刷新頁面機制
         // ==========================================
         
         // 設定刷新間隔 (毫秒)，這裡設為 10 秒
@@ -171,14 +171,11 @@
 
         setInterval(function() {
             // 檢查確認視窗是否開啟中
-            // Bootstrap 開啟 Modal 時會幫 body 加上 'modal-open' class，或者是檢查 Modal 元素是否有 'show' class
             var confirmModal = document.getElementById('confirmModal');
             var isModalOpen = confirmModal.classList.contains('show') || document.body.classList.contains('modal-open');
 
             // 只有在「沒有」開啟確認視窗時，才執行刷新
             if (!isModalOpen) {
-                // 使用 reload() 重新載入頁面，這樣會保留網址參數 (例如 selected_id)
-                // 這樣如果你正在看某一筆訂單的明細，刷新後依然會停留在該筆訂單
                 window.location.reload();
             } else {
                 console.log("使用者正在操作，暫停自動刷新");

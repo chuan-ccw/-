@@ -49,7 +49,7 @@
                                     <span class="badge bg-success py-2" style="width: 100px;">已完成</span>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('admin_history_orders', selected_id=order.order_id) }}" 
+                                    <a href="{{ url_for('admin_select_order', order_id=order.order_id, source='history') }}" 
                                        class="btn btn-info btn-sm text-white">查看</a>
                                 </td>
                             </tr>
