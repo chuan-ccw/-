@@ -13,7 +13,7 @@
         .btn-action { min-width: 120px; }
         .store-badge { background-color: #e9ecef; color: #495057; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; margin-right: 10px;}
         
-        /* ✅ 新增：統一 Badge 樣式 */
+        /* 統一 Badge 樣式 */
         .badge { font-size: 0.95em; padding: 6px 10px; font-weight: normal; }
     </style>
 </head>
@@ -82,15 +82,13 @@
     {% endif %}
 
     <div class="d-flex justify-content-between mt-4">
-        <a href="{{ url_for('order_drink', phone=phone, customer_id=customer_id, order_id=order_id, store_id=store_id) }}" 
+        <a href="{{ url_for('order_drink') }}" 
            class="btn btn-secondary btn-action btn-lg">
            返回點餐
         </a>
 
         {% if items %}
         <form action="{{ url_for('checkout') }}" method="POST">
-            <input type="hidden" name="order_id" value="{{ order_id }}">
-            <input type="hidden" name="phone" value="{{ phone }}">
             <input type="hidden" name="tot_price" value="{{ total_price }}">
             <input type="hidden" name="tot_amount" value="{{ total_qty }}">
             <button type="submit" class="btn btn-success btn-action btn-lg">確認結帳</button>
