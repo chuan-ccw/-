@@ -12,6 +12,7 @@
         .total-price { color: #d32f2f; font-size: 1.6em; }
         .store-badge { background-color: #28a745; color: #fff; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 1em; margin-right: 15px;}
         .alert-success-custom { background-color: #e6ffed; border-color: #c3e6cb; color: #155724; }
+        .badge { font-size: 0.95em; padding: 6px 10px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -22,10 +23,10 @@
 
         <div class="page-header d-flex justify-content-between align-items-center mb-4">
             <div>
-                <span class="store-badge">店家：{{ store_name }} (ID: {{ store_id }})</span> 
+                <span class="store-badge">店家：{{ store_name }}</span> 
             </div>
             <div class="text-end">
-                訂單編號：**{{ order_id }}** <br>
+                訂單編號：{{ order_id }} <br>
                 顧客電話：{{ customer_phone }}
             </div>
         </div>
@@ -36,7 +37,10 @@
             <thead class="table-dark">
                 <tr>
                     <th>品名</th>
-                    <th>規格</th>
+                    <th>尺寸</th>
+                    <th>冰量</th>
+                    <th>甜度</th>
+                    <th>加料</th>
                     <th>數量</th>
                     <th>單價</th>
                     <th>小計</th>
@@ -45,14 +49,15 @@
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td class="text-start">{{ item.product_name }}</td>
+                    <td>{{ item.product_name }}</td>
+                    <td><span class="badge bg-secondary">{{ item.size }}</span></td>
+                    <td><span class="badge bg-info text-dark">{{ item.ice }}</span></td>
+                    <td><span class="badge bg-warning text-dark">{{ item.sugar }}</span></td>
                     <td>
-                        <span class="badge bg-danger">{{ item.temperature }}</span> 
-                        <span class="badge bg-secondary">{{ item.size }}</span>
-                        <span class="badge bg-info text-dark">{{ item.ice }}</span>
-                        <span class="badge bg-warning text-dark">{{ item.sugar }}</span>
-                        {% if item.topping != '無' %}
+                        {% if item.topping and item.topping != '無' %}
                         <span class="badge bg-primary">{{ item.topping }}</span>
+                        {% else %}
+                        <span class="text-muted">-</span>
                         {% endif %}
                     </td>
                     <td>{{ item.quantity }}</td>
@@ -74,7 +79,7 @@
         {% endif %}
 
         <div class="text-center mt-5">
-            <p class="text-muted">您的訂單已送出至店家 (ID: {{ store_id }})，請稍候準備飲料。</p>
+            <p class="text-muted">您的訂單已送出至店家「{{ store_name }}」，請稍候準備飲料。</p>
             <a class="btn btn-primary btn-lg" href="{{ url_for('customer_login') }}">
                 再次訂購
             </a>

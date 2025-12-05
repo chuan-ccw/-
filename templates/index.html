@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -43,6 +42,7 @@
             border: none;
             cursor: pointer;
             color: #ffffff;
+            text-decoration: none; /* 確保超連結沒有底線 */
         }
 
         .btn-shop {
@@ -56,20 +56,21 @@
         .btn:hover {
             opacity: 0.85;
         }
+        
+        /* 移除超連結預設樣式，避免產生意外的底線或符號 */
+        a {
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>手搖飲訂購系統</h1>
 
-        <!-- 我是店家：去 admin_login 頁面 -->
         <a href="{{ url_for('admin_login') }}">
             <button class="btn btn-shop">我是店家</button>
         </a>
 
-        <span style="margin: 0 8px;">-</span>
-
-        <!-- 我是客人：去 customer_login 頁面 -->
         <a href="{{ url_for('customer_login') }}">
             <button class="btn btn-customer">我是客人</button>
         </a>

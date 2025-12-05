@@ -11,8 +11,10 @@
         .total-section { font-size: 1.2em; font-weight: bold; text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
         .total-price { color: #d32f2f; font-size: 1.4em; }
         .btn-action { min-width: 120px; }
-        /* 讓店家名稱醒目一點 */
         .store-badge { background-color: #e9ecef; color: #495057; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; margin-right: 10px;}
+        
+        /* ✅ 新增：統一 Badge 樣式 */
+        .badge { font-size: 0.95em; padding: 6px 10px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -32,7 +34,10 @@
         <thead class="table-light">
             <tr>
                 <th>品名</th>
-                <th>詳細規格</th>
+                <th>尺寸</th>
+                <th>冰量</th>
+                <th>甜度</th>
+                <th>加料</th>
                 <th>數量</th>
                 <th>單價</th>
                 <th>小計</th>
@@ -42,14 +47,21 @@
             {% for item in items %}
             <tr>
                 <td>{{ item.product_name }}</td>
+                
+                <td><span class="badge bg-secondary">{{ item.size }}</span></td>
+                
+                <td><span class="badge bg-info text-dark">{{ item.ice }}</span></td>
+                
+                <td><span class="badge bg-warning text-dark">{{ item.sugar }}</span></td>
+                
                 <td>
-                    <span class="badge bg-secondary">{{ item.size }}</span>
-                    <span class="badge bg-info text-dark">{{ item.ice }}</span>
-                    <span class="badge bg-warning text-dark">{{ item.sugar }}</span>
-                    {% if item.topping != '無' %}
+                    {% if item.topping and item.topping != '無' %}
                     <span class="badge bg-primary">{{ item.topping }}</span>
+                    {% else %}
+                    <span class="text-muted">-</span>
                     {% endif %}
                 </td>
+                
                 <td>{{ item.quantity }}</td>
                 <td>${{ item.price }}</td>
                 <td>${{ item.subtotal }}</td>
