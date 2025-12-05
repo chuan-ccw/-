@@ -7,36 +7,49 @@
     <style>
         body { background-color: #f8f9fa; padding: 20px; }
         .container { max-width: 900px; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        .page-header { border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 10px; }
         .total-section { font-size: 1.4em; font-weight: bold; text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
         .total-price { color: #d32f2f; font-size: 1.6em; }
-        .store-badge { background-color: #28a745; color: #fff; padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 1em; margin-right: 15px;}
-        .alert-success-custom { background-color: #e6ffed; border-color: #c3e6cb; color: #155724; }
+        /* 店家徽章樣式 (綠色) */
+        .store-badge { background-color: #28a745; color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 1.1em; }
+        .alert-success-custom { background-color: #e6ffed; color: #155724; border-color: #c3e6cb; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        /* 統一 Badge 樣式 */
         .badge { font-size: 0.95em; padding: 6px 10px; font-weight: normal; }
+        
+        /* 資訊區塊文字大小 */
+        .info-text { font-size: 1.05em; color: #6c757d; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="alert alert-success-custom text-center py-3">
-            <h2>🎉 恭喜！下單成功</h2>
+        
+        <div class="alert-success-custom text-center">
+            <h3 class="fw-bold">🎉 訂單成功送出！</h3>
+            <p class="mb-0">感謝您的訂購，店家將會開始準備您的飲料。</p>
         </div>
 
-        <div class="page-header d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <span class="store-badge">店家：{{ store_name }}</span> 
-            </div>
-            <div class="text-end">
-                訂單編號：{{ order_id }} <br>
-                顧客電話：{{ customer_phone }}
+        <div class="mb-4">
+
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="store-badge">店家：{{ store_name }}</span> 
+                </div>
+                
+                <div class="text-end info-text">
+                    <div class="mb-1">訂單編號：{{ order_id }}</div>
+                    <div>顧客電話：{{ customer_phone }}</div>
+                </div>
             </div>
         </div>
+        <div class="border-bottom mb-3"></div>
 
         {% if items %}
-        <h4 class="mb-3">訂單明細</h4>
-        <table class="table table-striped table-hover align-middle text-center">
-            <thead class="table-dark">
+        <h4 class="mb-2">訂單資訊</h4>
+
+        <table class="table table-hover align-middle text-center mb-4">
+            <thead class="table-light">
                 <tr>
-                    <th>品名</th>
+                    <th class="text-start">品名</th>
                     <th>尺寸</th>
                     <th>冰量</th>
                     <th>甜度</th>
@@ -49,7 +62,7 @@
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td>{{ item.product_name }}</td>
+                    <td class="text-start">{{ item.product_name }}</td>
                     <td><span class="badge bg-secondary">{{ item.size }}</span></td>
                     <td><span class="badge bg-info text-dark">{{ item.ice }}</span></td>
                     <td><span class="badge bg-warning text-dark">{{ item.sugar }}</span></td>
@@ -78,12 +91,15 @@
         </div>
         {% endif %}
 
-        <div class="text-center mt-5">
-            <p class="text-muted">您的訂單已送出至店家「{{ store_name }}」，請稍候準備飲料。</p>
-            <a class="btn btn-primary btn-lg" href="{{ url_for('customer_login') }}">
+        <div class="text-center mt-5 pt-3 border-top">
+            <p class="text-muted mb-4">您的訂單已送出至店家「{{ store_name }}」，請稍候。</p>
+            
+            <a class="btn btn-primary btn-lg px-5" href="{{ url_for('customer_login') }}">
                 再次訂購
             </a>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -8,30 +8,41 @@
         body { background-color: #f8f9fa; padding: 20px; }
         .container { max-width: 950px; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
         .header-info { text-align: right; font-size: 0.9em; color: #555; line-height: 1.5; }
-        .drink-img-box { width: 100%; height: 350px; background-color: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #ddd; }
-        .drink-img-box img { max-width: 100%; max-height: 100%; object-fit: cover; display: none; }
+        
+        /* 左側圖片區塊樣式 */
+        .drink-img-box {
+            width: 100%;
+            height: 350px;
+            background-color: #eee;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .drink-img-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            display: none; /* 預設隱藏，選了飲料才顯示 */
+        }
+        
         .form-label { font-weight: bold; }
         .btn-action { width: 120px; }
         select option[disabled] { color: #999; }
-        /* 店家名稱顯示樣式 */
-        .store-display { font-size: 1.2em; color: #2c3e50; font-weight: bold; padding: 5px 10px; background-color: #e9ecef; border-radius: 5px; display: inline-block;}
+        .store-display { font-size: 1.1em; color: #495057; background-color: #e9ecef; padding: 5px 10px; border-radius: 5px; font-weight: bold;}
     </style>
 </head>
 <body>
 
 <div class="container">
     <form action="{{ url_for('add_item') }}" method="POST">
-        <input type="hidden" name="phone" value="{{ customer_phone }}">
-        <input type="hidden" name="customer_id" value="{{ customer_id }}">
-        <input type="hidden" name="order_id" value="{{ order_id }}">
-        
-        <input type="hidden" name="store_id" value="{{ store_id }}">
-
         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
             <h2 class="mb-0">飲料點單</h2>
             
             <div class="d-flex align-items-center">
-                <div class="me-5 text-end">
+                <div class="me-4 text-end">
                     <span class="text-muted small d-block">目前店家</span>
                     <div class="store-display">{{ store_name }}</div>
                 </div>
@@ -85,8 +96,10 @@
                             <option value="" disabled selected>請選擇冰量</option>
                             <option value="正常冰">正常冰</option>
                             <option value="少冰">少冰</option>
+                            <option value="微冰">微冰</option>
                             <option value="去冰">去冰</option>
-                            <option value="熱飲">熱飲</option>
+                            <option value="溫">溫</option>
+                            <option value="熱">熱</option>
                         </select>
                     </div>
                 </div>
@@ -97,8 +110,9 @@
                         <select name="sugar" class="form-select" required>
                             <option value="" disabled selected>請選擇甜度</option>
                             <option value="全糖">全糖</option>
+                            <option value="七分糖">七分糖</option>
                             <option value="半糖">半糖</option>
-                            <option value="微糖">微糖</option>
+                            <option value="三分糖">三分糖</option>
                             <option value="無糖">無糖</option>
                         </select>
                     </div>
@@ -127,7 +141,7 @@
                 <div class="d-flex justify-content-end mt-4">
                     <button type="reset" id="reset-btn" class="btn btn-secondary btn-action me-2">清空資料</button>
                     <button type="submit" class="btn btn-primary btn-action me-2">加入訂單</button>
-                    <a href="{{ url_for('order_summary', phone=customer_phone, order_id=order_id) }}" class="btn btn-success btn-action">
+                    <a href="{{ url_for('order_summary') }}" class="btn btn-success btn-action">
                         目前訂單
                     </a>
                 </div>
@@ -136,27 +150,47 @@
     </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var select = document.getElementById("product-select");
         var img = document.getElementById("product-image");
         var resetBtn = document.getElementById("reset-btn");
 
+        // 圖片更新邏輯
         function updateImage() {
             if (select.selectedIndex >= 0) {
                 var selectedOption = select.options[select.selectedIndex];
+                
+                // 如果是預設選項 (disabled)，隱藏圖片
                 if (selectedOption.disabled) {
-                    img.src = ""; img.style.display = "none"; return;
+                    img.src = "";
+                    img.style.display = "none";
+                    return;
                 }
+
                 var photoUrl = selectedOption.getAttribute("data-photo");
-                if (photoUrl) { img.src = photoUrl; img.style.display = "block"; }
-                else { img.src = ""; img.style.display = "none"; }
+                if (photoUrl) {
+                    img.src = photoUrl;
+                    img.style.display = "block";
+                } else {
+                    img.src = ""; 
+                    img.style.display = "none";
+                }
             }
         }
+
         select.addEventListener("change", updateImage);
+
+        // 清空資料按鈕監聽
         resetBtn.addEventListener("click", function() {
-            setTimeout(function() { img.src = ""; img.style.display = "none"; }, 0);
+            setTimeout(function() {
+                img.src = "";
+                img.style.display = "none";
+            }, 0);
         });
+
+        // 初始化
         updateImage();
     });
 </script>

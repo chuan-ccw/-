@@ -266,7 +266,7 @@ def admin_order_detail(order_id):
 
 # ================== 客人端 (Customer) - 修改重點 ==================
 
-# 顧客登入：customer_login.html (選店家)
+# 顧客登入：customer_login.html (選店家) 寫入 Session
 @app.route("/customer_login", methods=["GET", "POST"])
 @app.route("/customer_login.html", methods=["GET", "POST"])
 def customer_login():
@@ -275,17 +275,15 @@ def customer_login():
 
     if request.method == "POST":
         phone = request.form.get("phone", "").strip()
-        store_id = request.form.get("store_id") # 取得使用者選擇的店家
+        store_id = request.form.get("store_id")
 
-        # Regex 檢查
         if not re.match(r"^09\d{8}$", phone):
-            # 發生錯誤時，也要重新抓取店家列表回傳，不然下拉選單會空掉
             cursor.execute("SELECT store_id, name FROM store")
             stores = [{"id": r[0], "name": r[1]} for r in cursor.fetchall()]
             conn.close()
             return render_template("customer_login.html", error_msg="格式錯誤，請輸入 09 開頭的 10 位數字號碼", old_phone=phone, stores=stores)
 
-        # 1. 檢查顧客是否存在
+        # 1. 檢查顧客
         cursor.execute("SELECT customer_id FROM customer WHERE phone = ?", (phone,))
         row = cursor.fetchone()
         if row:
@@ -296,7 +294,7 @@ def customer_login():
             cursor.execute("INSERT INTO customer (customer_id, phone) VALUES (?, ?)", (customer_id, phone))
             conn.commit()
         
-        # 2. 在登入時直接建立訂單，並寫入 store_id
+        # 2. 建立訂單
         cursor.execute("SELECT ISNULL(MAX(order_id), 0) + 1 FROM [order]")
         new_order_id = cursor.fetchone()[0]
 
@@ -307,10 +305,16 @@ def customer_login():
         conn.commit()
         conn.close()
         
-        # 3. 轉跳點餐畫面，帶入 store_id
-        return redirect(url_for("order_drink", phone=phone, customer_id=customer_id, order_id=new_order_id, store_id=store_id))
+        # ✅ 重要：將關鍵資訊存入 Session，而不是放在 URL 傳遞
+        session['customer_phone'] = phone
+        session['customer_id'] = customer_id
+        session['current_order_id'] = new_order_id
+        session['current_store_id'] = store_id
+        
+        # 3. 轉跳點餐畫面 (網址乾淨了)
+        return redirect(url_for("order_drink"))
 
-    # GET 請求：撈取店家列表供選單使用
+    # GET 請求
     cursor.execute("SELECT store_id, name FROM store")
     stores = [{"id": r[0], "name": r[1]} for r in cursor.fetchall()]
     conn.close()
@@ -322,18 +326,18 @@ def customer_login():
 @app.route("/order_drink")
 @app.route("/order_drink.html")
 def order_drink():
-    phone = request.args.get("phone")
-    customer_id = request.args.get("customer_id")
-    order_id = request.args.get("order_id")
-    store_id = request.args.get("store_id") # 接收 store_id
+    # ✅ 從 Session 拿資料，如果沒有 Session 就踢回登入頁
+    phone = session.get('customer_phone')
+    customer_id = session.get('customer_id')
+    order_id = session.get('current_order_id')
+    store_id = session.get('current_store_id')
     
-    if not phone or not customer_id or not order_id:
+    if not phone or not order_id:
         return redirect(url_for("customer_login"))
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 查詢目前店家的名稱 (為了顯示在畫面上)
     store_name = "未知店家"
     if store_id:
         cursor.execute("SELECT name FROM store WHERE store_id = ?", (store_id,))
@@ -341,7 +345,6 @@ def order_drink():
         if row:
             store_name = row[0]
 
-    # 取得所有飲品
     cursor.execute("SELECT product_id, name, photo_url, price FROM product")
     rows = cursor.fetchall()
     products = []
@@ -358,8 +361,8 @@ def order_drink():
         customer_phone=phone,
         customer_id=customer_id,
         order_id=order_id,
-        store_id=store_id,      # 傳給前端 (hidden input)
-        store_name=store_name,  # 傳給前端 (顯示用)
+        store_id=store_id,
+        store_name=store_name,
         products=products,
         today=date.today().strftime("%Y-%m-%d")
     )
@@ -368,18 +371,18 @@ def order_drink():
 # ✅ 加入訂單 (新增合併邏輯)
 @app.route("/add_item", methods=["POST"])
 def add_item():
-    phone = request.form.get("phone")
-    customer_id = request.form.get("customer_id")
-    order_id = request.form.get("order_id")
-    store_id = request.form.get("store_id")
+    # 從 Session 取得關鍵 ID，確保安全
+    order_id = session.get('current_order_id')
     
+    if not order_id:
+        return redirect(url_for("customer_login"))
+
+    # 表單只負責傳遞商品內容
     product_id = request.form.get("product_id")
     size = request.form.get("size")
     ice = request.form.get("ice")
     sugar = request.form.get("sugar")
     topping = request.form.get("topping", "無")
-    
-    # 確保數量是整數
     try:
         quantity = int(request.form.get("quantity", 1))
     except ValueError:
@@ -388,46 +391,21 @@ def add_item():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 1. 檢查並建立/更新 Order (若訂單不存在則建立，若存在則確認 store_id)
-    cursor.execute("SELECT order_id FROM [order] WHERE order_id = ?", (order_id,))
-    if not cursor.fetchone():
-        # 如果是新訂單，先建立 Header
-        cursor.execute(
-            "INSERT INTO [order] (order_id, customer_id, store_id, status) VALUES (?, ?, ?, ?)",
-            (order_id, customer_id, store_id, "未完成")
-        )
-    else:
-        # 如果已存在，更新 store_id (防止使用者中途換店家)
-        cursor.execute("UPDATE [order] SET store_id = ? WHERE order_id = ?", (store_id, order_id))
-
-
-    # 2. ✅ 檢查 Item 是否已存在相同規格 (合併邏輯)
+    # 檢查是否已存在相同規格 (合併邏輯)
     cursor.execute("""
         SELECT item_id, quantity 
         FROM item 
-        WHERE order_id = ? 
-          AND product_id = ? 
-          AND size = ? 
-          AND ice = ? 
-          AND sugar = ? 
-          AND topping = ?
+        WHERE order_id = ? AND product_id = ? AND size = ? AND ice = ? AND sugar = ? AND topping = ?
     """, (order_id, product_id, size, ice, sugar, topping))
     
     existing_item = cursor.fetchone()
 
     if existing_item:
-        # 👉 情況 A: 已有相同品項，更新數量 (舊數量 + 新數量)
-        item_id = existing_item[0]
-        old_qty = existing_item[1]
-        new_qty = old_qty + quantity
-        
-        cursor.execute("UPDATE item SET quantity = ? WHERE item_id = ?", (new_qty, item_id))
-        
+        new_qty = existing_item[1] + quantity
+        cursor.execute("UPDATE item SET quantity = ? WHERE item_id = ?", (new_qty, existing_item[0]))
     else:
-        # 👉 情況 B: 沒有相同品項，新增一筆 Item
         cursor.execute("SELECT ISNULL(MAX(item_id), 0) + 1 FROM item")
         new_item_id = cursor.fetchone()[0]
-
         cursor.execute("""
             INSERT INTO item (item_id, order_id, product_id, size, ice, sugar, topping, quantity)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -436,18 +414,20 @@ def add_item():
     conn.commit()
     conn.close()
 
-    return redirect(url_for("order_drink", phone=phone, customer_id=customer_id, order_id=order_id, store_id=store_id))
+    return redirect(url_for("order_drink")) # 不需要帶參數了
 
 # 訂單總覽 (order_summary)
 @app.route("/order_summary")
 def order_summary():
-    phone = request.args.get("phone")
-    order_id = request.args.get("order_id")
+    # 從 Session 讀取
+    phone = session.get('customer_phone')
+    order_id = session.get('current_order_id')
+    
+    if not order_id: return redirect(url_for("customer_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. 查詢訂單明細 (確保沒有 i.temperature)
     cursor.execute("""
         SELECT i.item_id, p.name, i.size, i.ice, i.sugar, i.topping, i.quantity, p.price
         FROM item i JOIN product p ON i.product_id = p.product_id WHERE i.order_id = ?
@@ -456,42 +436,20 @@ def order_summary():
     items = []
     tot_p, tot_q = 0, 0
     for r in cursor.fetchall():
-        sub = r[7]*r[6]
-        tot_p += sub
-        tot_q += r[6]
-        items.append({
-            "product_name": r[1], 
-            "size": r[2], 
-            "ice": r[3], 
-            "sugar": r[4], 
-            "topping": r[5], # r[5] 是 i.topping
-            "quantity": r[6], 
-            "price": r[7], 
-            "subtotal": sub
-            # 這裡也不需要 temperature
-        })
+        sub = r[7]*r[6]; tot_p+=sub; tot_q+=r[6]
+        items.append({"product_name": r[1], "size": r[2], "ice": r[3], "sugar": r[4], "topping": r[5], "quantity": r[6], "price": r[7], "subtotal": sub})
     
-    # 2. 查詢 customer_id (供返回使用)
-    cursor.execute("SELECT customer_id FROM customer WHERE phone = ?", (phone,))
-    row_c = cursor.fetchone()
-    cid = row_c[0] if row_c else None
-    
-    # 3. 查詢 store_id 與 store_name (供顯示與返回使用)
-    sid = None
+    # 查詢店名
     store_name = "未知店家"
-    
-    cursor.execute("SELECT store_id FROM [order] WHERE order_id = ?", (order_id,))
-    row_s = cursor.fetchone()
-    if row_s:
-        sid = row_s[0]
-        # 再查店名
-        cursor.execute("SELECT name FROM store WHERE store_id = ?", (sid,))
-        row_name = cursor.fetchone()
-        if row_name:
-            store_name = row_name[0]
+    store_id = session.get('current_store_id')
+    if store_id:
+        cursor.execute("SELECT name FROM store WHERE store_id = ?", (store_id,))
+        row = cursor.fetchone()
+        if row: store_name = row[0]
 
     conn.close()
     
+    # Render 時不需要再傳 ID 給前端的按鈕連結，因為後端都會從 Session 抓
     return render_template(
         "order_summary.html", 
         items=items, 
@@ -499,29 +457,33 @@ def order_summary():
         total_qty=tot_q, 
         phone=phone, 
         order_id=order_id, 
-        customer_id=cid, 
-        store_id=sid,           # 傳回 store_id 給前端按鈕用
-        store_name=store_name   # 傳回 store_name 給前端顯示用
+        store_name=store_name
     )
 
 @app.route("/checkout", methods=["POST"])
 def checkout():
-    order_id = request.form.get("order_id")
+    order_id = session.get('current_order_id') # 從 Session 拿
+    if not order_id: return redirect(url_for("customer_login"))
+
+    # 金額從後端重算比較安全，或者暫時信任前端傳來的 hidden
     tot_price = request.form.get("tot_price")
     tot_amount = request.form.get("tot_amount")
+    
     conn = get_db_connection()
     conn.execute("UPDATE [order] SET tot_price = ?, tot_amount = ?, status = N'未完成' WHERE order_id = ?", (tot_price, tot_amount, order_id))
-    conn.commit(); conn.close()
-    return redirect(url_for("order_success", order_id=order_id))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for("order_success")) # 不需要參數
 
 @app.route("/order_success")
 def order_success():
-    order_id = request.args.get("order_id")
+    order_id = session.get('current_order_id') # 從 Session 拿
+    if not order_id: return redirect(url_for("customer_login"))
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 查詢訂單基本資訊 (o.order_id, s.name, o.tot_price, c.phone, s.store_id)
     cursor.execute("""
         SELECT o.order_id, s.name, o.tot_price, c.phone, s.store_id
         FROM [order] o JOIN store s ON o.store_id = s.store_id 
@@ -529,35 +491,22 @@ def order_success():
     """, (order_id,))
     order_info = cursor.fetchone() 
 
-    # 查詢訂單明細 (確保欄位正確)
     cursor.execute("""
         SELECT p.name, i.size, i.ice, i.sugar, i.topping, i.quantity, p.price
         FROM item i JOIN product p ON i.product_id = p.product_id WHERE i.order_id = ?
     """, (order_id,))
     
-    items = [
-        {
-            "product_name": r[0], 
-            "size": r[1], 
-            "ice": r[2], 
-            "sugar": r[3], 
-            "topping": r[4], 
-            "quantity": r[5], 
-            "price": r[6], 
-            "subtotal": r[5]*r[6]
-        } 
-        for r in cursor.fetchall()
-    ]
+    items = [{"product_name": r[0], "size": r[1], "ice": r[2], "sugar": r[3], "topping": r[4], "quantity": r[5], "price": r[6], "subtotal": r[5]*r[6]} for r in cursor.fetchall()]
     
     conn.close()
     
-    if not order_info:
-        return redirect(url_for("customer_login"))
+    # 結帳完成後，可以考慮清除 current_order_id，或是留著讓使用者看
+    # session.pop('current_order_id', None) 
 
     return render_template(
         "order_success.html", 
         order_id=order_info[0],       
-        store_name=order_info[1],     # 這是店名 (如 "50嵐 太平店")
+        store_name=order_info[1],     
         total_amount=order_info[2],   
         customer_phone=order_info[3], 
         store_id=order_info[4],       

@@ -143,23 +143,48 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        let targetForm = null; // 用來暫存要送出的表單
+        // ==========================================
+        // 1. 原本的 Modal 控制程式碼 (維持不變)
+        // ==========================================
+        let targetForm = null; 
 
         function showConfirmation(event, form) {
-            event.preventDefault(); // 1. 阻止表單直接送出
-            targetForm = form;      // 2. 記住是哪個表單觸發的
+            event.preventDefault(); 
+            targetForm = form;      
             
-            // 3. 呼叫 Bootstrap Modal 顯示出來
             var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
             myModal.show();
         }
 
-        // 4. 當使用者在 Modal 按下「確定」時
         document.getElementById('confirmBtn').addEventListener('click', function() {
             if (targetForm) {
-                targetForm.submit(); // 手動送出原本的表單
+                targetForm.submit(); 
             }
         });
+
+        // ==========================================
+        // 2. ✅ 新增：自動刷新頁面機制
+        // ==========================================
+        
+        // 設定刷新間隔 (毫秒)，這裡設為 10 秒
+        const REFRESH_INTERVAL = 10000; 
+
+        setInterval(function() {
+            // 檢查確認視窗是否開啟中
+            // Bootstrap 開啟 Modal 時會幫 body 加上 'modal-open' class，或者是檢查 Modal 元素是否有 'show' class
+            var confirmModal = document.getElementById('confirmModal');
+            var isModalOpen = confirmModal.classList.contains('show') || document.body.classList.contains('modal-open');
+
+            // 只有在「沒有」開啟確認視窗時，才執行刷新
+            if (!isModalOpen) {
+                // 使用 reload() 重新載入頁面，這樣會保留網址參數 (例如 selected_id)
+                // 這樣如果你正在看某一筆訂單的明細，刷新後依然會停留在該筆訂單
+                window.location.reload();
+            } else {
+                console.log("使用者正在操作，暫停自動刷新");
+            }
+        }, REFRESH_INTERVAL);
+
     </script>
 </body>
 </html>
